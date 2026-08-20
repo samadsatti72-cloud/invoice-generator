@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import html2pdf from 'html2pdf.js';
 import { LABELS } from './labels';
 import { generateZatcaQrDataUrl } from './zatca';
 import './App.css';
@@ -69,7 +70,6 @@ export default function App() {
   const [date, setDate] = useState(() => todayISO());
   const [dueDate, setDueDate] = useState('');
   
-  // Buyer details state
   const [buyerName, setBuyerName] = useState('');
   const [buyerVat, setBuyerVat] = useState('');
   const [buyerCr, setBuyerCr] = useState('');
@@ -198,7 +198,7 @@ export default function App() {
     setMobileView('edit');
   }
 
-  function handlePrint() {
+  function saveToHistory() {
     rememberOrganization();
     const entry = {
       id: uid(),
@@ -222,7 +222,24 @@ export default function App() {
     const nextHistory = [entry, ...history.filter((h) => h.invoiceNumber !== invoiceNumber)].slice(0, 200);
     setHistory(nextHistory);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory));
+  }
+
+  function handlePrint() {
+    saveToHistory();
     window.print();
+  }
+
+  function handleDownloadPdf() {
+    saveToHistory();
+    const element = document.getElementById('invoice-sheet');
+    const opt = {
+      margin: 10,
+      filename: `${invoiceNumber}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    };
+    html2pdf().set(opt).from(element).save();
   }
 
   function loadFromHistory(entry) {
@@ -283,8 +300,11 @@ export default function App() {
           <button className="btn subtle" onClick={startNewInvoice}>
             {t.newInvoice || 'New Invoice'}
           </button>
-          <button className="btn primary" onClick={handlePrint}>
-            {t.print || 'Print / Save'}
+          <button className="btn ghost" onClick={handlePrint}>
+            {t.print || 'Print'}
+          </button>
+          <button className="btn primary" onClick={handleDownloadPdf}>
+            Save as PDF
           </button>
         </div>
       </header>
@@ -480,7 +500,6 @@ export default function App() {
 
         <section className={`preview-pane ${mobileView === 'preview' ? '' : 'mobile-hidden'}`}>
           <div className="invoice-sheet" id="invoice-sheet">
-            {/* Header: Left Details | Centered Larger Logo | Right Details */}
             <div className="sheet-header centered-logo-header">
               <div className="header-col seller-info">
                 <div className="seller-name">{agencyDisplayName || '—'}</div>

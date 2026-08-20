@@ -721,28 +721,41 @@
 
 /* ---------- print ---------- */
 @media print {
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   .no-print {
     display: none !important;
   }
+
   body,
   .shell,
   .workspace {
     background: #fff !important;
   }
+
   .workspace {
     display: block;
     padding: 0;
     margin: 0;
     max-width: none;
   }
+
   .preview-pane {
     display: block;
     position: static;
     padding: 0;
   }
+
   .mobile-hidden {
     display: block !important;
   }
+
   .invoice-sheet {
     box-shadow: none !important;
     border: none !important;
@@ -752,6 +765,18 @@
     padding: 0;
     margin: 0;
   }
+
+  /* Force table headers and background colors to show in print */
+  .items-table th {
+    background-color: var(--accent-dark) !important;
+    color: #fff !important;
+  }
+
+  .totals-inner {
+    background-color: var(--accent-soft) !important;
+    border: 1px solid var(--accent) !important;
+  }
+
   @page {
     margin: 14mm;
   }
