@@ -351,13 +351,7 @@
   margin-top: 2px;
 }
 
-/* RTL Adjustments for Header Columns */
-[dir="rtl"] .header-col.seller-info {
-  text-align: end;
-}
-[dir="rtl"] .header-col.doc-block {
-  text-align: start;
-}
+
 
 .ledger-rule {
   height: 1px;
