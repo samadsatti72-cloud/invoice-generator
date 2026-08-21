@@ -725,7 +725,42 @@ function SettingsModal({ t, agency, onCancel, onSave, fileInputRef }) {
             />
           </div>
         </div>
+      <h2 className="section-subtitle">{t.clientDetails || 'Client details'}</h2>
+<div className="field-grid two">
+  <label className="field">
+    <span>{t.buyerName || 'Organization / buyer name'}</span>
+    <input
+      value={buyerName}
+      onChange={(e) => handleBuyerNameChange(e.target.value)}
+      onBlur={rememberOrganization}
+      list="saved-organizations"
+    />
+    <datalist id="saved-organizations">
+      {orgList.map((org) => (
+        <option value={org.name} key={org.name} />
+      ))}
+    </datalist>
+  </label>
+  <label className="field">
+    <span>{t.buyerVat || 'Buyer VAT number (optional)'}</span>
+    <input
+      value={buyerVat}
+      onChange={(e) => setBuyerVat(e.target.value)}
+      onBlur={rememberOrganization}
+    />
+  </label>
+</div>
 
+<div className="field-grid two">
+  <label className="field">
+    <span>{t.buyerCr || 'CR Number'}</span>
+    <input value={buyerCr} onChange={(e) => setBuyerCr(e.target.value)} onBlur={rememberOrganization} />
+  </label>
+  <label className="field">
+    <span>{t.buyerAddress || 'Address'}</span>
+    <input value={buyerAddress} onChange={(e) => setBuyerAddress(e.target.value)} onBlur={rememberOrganization} />
+  </label>
+</div>
         <div className="field-grid two">
           <label className="field">
             <span>{t.agencyName || 'Agency Name (EN)'}</span>
