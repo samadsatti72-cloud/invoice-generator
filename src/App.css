@@ -742,6 +742,8 @@
   letter-spacing: normal;
   font-weight: 800;
 }
+
+/* Cairo — bold display headings and section titles. */
 [dir='rtl'] .section-title,
 [dir='rtl'] .section-subtitle,
 [dir='rtl'] .doc-title,
@@ -753,9 +755,30 @@
   font-weight: 800;
 }
 
-/* Almarai only ships 400/700/800 — pin the smaller uppercase-style labels
-   (which request an in-between weight for the Latin font) to a real bold
-   cut instead of letting the browser fall back to a thinner synthetic match. */
+/* Tajawal — dense, data-heavy content: item table rows, addresses, and
+   contact-meta rows. Its wide counters keep tightly packed Arabic text
+   (line items, addresses, phone/email/VAT strings) readable at small
+   sizes, which is exactly where invoices get crowded. */
+[dir='rtl'] .items-table td.col-desc,
+[dir='rtl'] .seller-address,
+[dir='rtl'] .bill-to-meta,
+[dir='rtl'] .bill-to-meta-group,
+[dir='rtl'] .seller-meta,
+[dir='rtl'] .notes-text,
+[dir='rtl'] .history-meta {
+  font-family: var(--font-arabic-dense);
+}
+[dir='rtl'] .items-table td.col-desc {
+  font-weight: 500;
+}
+[dir='rtl'] .bill-to-meta-group,
+[dir='rtl'] .seller-meta {
+  font-weight: 700;
+}
+
+/* Readex Pro (the default --font-body in RTL) already covers form labels,
+   buttons, and general UI copy cleanly — just pin labels to a confidently
+   bold cut so nothing reads thin next to the Cairo headings. */
 [dir='rtl'] .field span,
 [dir='rtl'] .item-row-head span,
 [dir='rtl'] .bill-to-label,
