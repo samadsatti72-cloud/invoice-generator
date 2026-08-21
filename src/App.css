@@ -740,6 +740,28 @@
 }
 [dir='rtl'] .brand-name {
   letter-spacing: normal;
+  font-weight: 800;
+}
+[dir='rtl'] .section-title,
+[dir='rtl'] .section-subtitle,
+[dir='rtl'] .doc-title,
+[dir='rtl'] .seller-name,
+[dir='rtl'] .bill-to-name,
+[dir='rtl'] .items-table th,
+[dir='rtl'] .totals-row.total,
+[dir='rtl'] .modal h2 {
+  font-weight: 800;
+}
+
+/* Almarai only ships 400/700/800 — pin the smaller uppercase-style labels
+   (which request an in-between weight for the Latin font) to a real bold
+   cut instead of letting the browser fall back to a thinner synthetic match. */
+[dir='rtl'] .field span,
+[dir='rtl'] .item-row-head span,
+[dir='rtl'] .bill-to-label,
+[dir='rtl'] .notes-label,
+[dir='rtl'] .btn {
+  font-weight: 700;
 }
 
 /* Fields that are intentionally kept LTR inside an RTL form (invoice
