@@ -539,7 +539,6 @@ export default function App() {
             <div className="sheet-header centered-logo-header">
               <div className="header-col seller-info">
                 <div className="seller-name">{agencyDisplayName || '—'}</div>
-                {agencyDisplayAddress && <div className="seller-address">{agencyDisplayAddress}</div>}
                 <div className="seller-meta">
                   {agency.vatNumber && (
                     <span>
@@ -552,18 +551,13 @@ export default function App() {
                     </span>
                   )}
                 </div>
-                <div className="seller-meta">
-                  {agency.phone && (
+                {agency.phone && (
+                  <div className="seller-meta">
                     <span>
                       {t.phone || 'Phone'}: <bdi dir="ltr">{agency.phone}</bdi>
                     </span>
-                  )}
-                  {agency.email && (
-                    <span>
-                      {t.email || 'Email'}: <bdi dir="ltr">{agency.email}</bdi>
-                    </span>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               <div className="header-col logo-center">
@@ -683,6 +677,14 @@ export default function App() {
             )}
 
             <div className="sheet-footer">
+              <div className="footer-details">
+                {agencyDisplayAddress && <div className="seller-address">{agencyDisplayAddress}</div>}
+                {agency.email && (
+                  <div className="seller-email">
+                    {t.email || 'Email'}: <bdi dir="ltr">{agency.email}</bdi>
+                  </div>
+                )}
+              </div>
               {qrUrl && (
                 <div className="qr-block">
                   <img src={qrUrl} alt="ZATCA QR" width={84} height={84} />

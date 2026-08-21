@@ -519,8 +519,23 @@
 
 .sheet-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: flex-end;
   margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+}
+.footer-details {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.footer-details .seller-address {
+  margin-top: 0;
+  margin-bottom: 4px;
+  max-width: none;
+}
+.seller-email {
+  font-family: var(--font-mono);
 }
 .qr-block {
   display: flex;
