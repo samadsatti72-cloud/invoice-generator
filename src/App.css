@@ -311,6 +311,10 @@
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.15rem;
+  display: inline-block;
+  text-align: center;
+  line-height: 1.35;
+  margin-bottom: 6px;
 }
 .seller-address {
   color: var(--ink-soft);
@@ -326,6 +330,14 @@
   font-size: 0.72rem;
   color: var(--ink-soft);
   margin-top: 4px;
+}
+.seller-meta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
 }
 
 .header-col.doc-block {
@@ -774,6 +786,7 @@
 [dir='rtl'] .bill-to-meta,
 [dir='rtl'] .bill-to-meta-group,
 [dir='rtl'] .seller-meta,
+[dir='rtl'] .seller-meta-stack,
 [dir='rtl'] .notes-text,
 [dir='rtl'] .history-meta {
   font-family: var(--font-arabic-dense);
@@ -782,7 +795,8 @@
   font-weight: 500;
 }
 [dir='rtl'] .bill-to-meta-group,
-[dir='rtl'] .seller-meta {
+[dir='rtl'] .seller-meta,
+[dir='rtl'] .seller-meta-stack {
   font-weight: 700;
 }
 

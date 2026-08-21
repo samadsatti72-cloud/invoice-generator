@@ -539,25 +539,23 @@ export default function App() {
             <div className="sheet-header centered-logo-header">
               <div className="header-col seller-info">
                 <div className="seller-name">{agencyDisplayName || '—'}</div>
-                <div className="seller-meta">
+                <div className="seller-meta-stack">
                   {agency.vatNumber && (
-                    <span>
+                    <div>
                       {t.vatNumberLabel || 'VAT Number'}: <bdi dir="ltr">{agency.vatNumber}</bdi>
-                    </span>
+                    </div>
                   )}
                   {agency.crNumber && (
-                    <span>
+                    <div>
                       {t.crNumberLabel || 'C.R. Number'}: <bdi dir="ltr">{agency.crNumber}</bdi>
-                    </span>
+                    </div>
+                  )}
+                  {agency.phone && (
+                    <div>
+                      {t.phone || 'Phone'}: <bdi dir="ltr">{agency.phone}</bdi>
+                    </div>
                   )}
                 </div>
-                {agency.phone && (
-                  <div className="seller-meta">
-                    <span>
-                      {t.phone || 'Phone'}: <bdi dir="ltr">{agency.phone}</bdi>
-                    </span>
-                  </div>
-                )}
               </div>
 
               <div className="header-col logo-center">
