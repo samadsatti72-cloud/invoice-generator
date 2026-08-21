@@ -448,6 +448,7 @@
 }
 .items-table th.col-num {
   text-align: end;
+  font-family: var(--font-display);
 }
 .items-table .col-desc {
   font-family: var(--font-display);
