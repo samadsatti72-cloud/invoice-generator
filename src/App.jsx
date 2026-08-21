@@ -538,7 +538,17 @@ export default function App() {
           <div className="invoice-sheet" id="invoice-sheet">
             <div className="sheet-header centered-logo-header">
               <div className="header-col seller-info">
-                <div className="seller-name">{agencyDisplayName || '—'}</div>
+                <div className="seller-name">
+                  {agencyDisplayName ? (
+                    agencyDisplayName.split('\n').map((line, i) => (
+                      <div key={i} style={i === 0 ? { textAlign: 'start' } : { textAlign: 'center' }}>
+                        {line}
+                      </div>
+                    ))
+                  ) : (
+                    '—'
+                  )}
+                </div>
                 <div className="seller-meta-stack">
                   {agency.vatNumber && (
                     <div>
@@ -778,11 +788,11 @@ function SettingsModal({ t, agency, onCancel, onSave, onAutosave, fileInputRef }
         <div className="field-grid two">
           <label className="field">
             <span>{t.agencyName || 'Agency Name (EN)'}</span>
-            <input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} />
+            <textarea rows={2} value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} />
           </label>
           <label className="field">
             <span>{t.agencyNameAr || 'Agency Name (AR)'}</span>
-            <input dir="rtl" value={form.nameAr} onChange={(e) => set('nameAr', e.target.value)} />
+            <textarea dir="rtl" rows={2} value={form.nameAr} onChange={(e) => set('nameAr', e.target.value)} />
           </label>
         </div>
 

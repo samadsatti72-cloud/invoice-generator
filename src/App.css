@@ -176,6 +176,7 @@
   letter-spacing: 0;
 }
 .field input,
+.field textarea,
 .select-input,
 .notes-input {
   width: 100%;
@@ -187,6 +188,7 @@
   background: var(--paper);
 }
 .field input:focus,
+.field textarea:focus,
 .select-input:focus,
 .notes-input:focus {
   border-color: var(--accent);
@@ -311,9 +313,6 @@
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.15rem;
-  display: inline-block;
-  text-align: start;
-  text-align-last: center;
   line-height: 1.35;
   margin-bottom: 6px;
 }
