@@ -189,9 +189,13 @@ export default function App() {
     localStorage.setItem(ORGANIZATIONS_KEY, JSON.stringify(updated));
   }
 
-  function saveAgency(next) {
+  function persistAgency(next) {
     setAgency(next);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+  }
+
+  function saveAgency(next) {
+    persistAgency(next);
     setSettingsOpen(false);
   }
 
@@ -696,6 +700,7 @@ export default function App() {
           agency={agency}
           onCancel={() => setSettingsOpen(false)}
           onSave={saveAgency}
+          onAutosave={persistAgency}
           onLogoFile={handleLogoFile}
           fileInputRef={fileInputRef}
         />
@@ -714,8 +719,20 @@ export default function App() {
   );
 }
 
-function SettingsModal({ t, agency, onCancel, onSave, fileInputRef }) {
+function SettingsModal({ t, agency, onCancel, onSave, onAutosave, fileInputRef }) {
   const [form, setForm] = useState(agency);
+
+  // Autosave as the person types, debounced. This is the fix for
+  // "closing and reopening asks for organization details again" — data
+  // used to only persist when the explicit Save button was clicked, so
+  // closing any other way (tab close, accidental Cancel) silently lost
+  // everything that had been typed.
+  useEffect(() => {
+    const id = setTimeout(() => {
+      onAutosave?.(form);
+    }, 400);
+    return () => clearTimeout(id);
+  }, [form, onAutosave]);
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
