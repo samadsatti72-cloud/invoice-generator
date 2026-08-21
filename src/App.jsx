@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import html2pdf from 'html2pdf.js';
 import { LABELS } from './labels';
 import { generateZatcaQrDataUrl } from './zatca';
@@ -83,6 +84,7 @@ export default function App() {
   const [amountPaid, setAmountPaid] = useState(0);
   const [qrUrl, setQrUrl] = useState(null);
   const [mobileView, setMobileView] = useState('edit');
+  const [langFading, setLangFading] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -91,6 +93,25 @@ export default function App() {
     document.documentElement.lang = lang;
     localStorage.setItem(LANG_KEY, JSON.stringify(lang));
   }, [lang, t.dir]);
+
+  // Smoothly cross-fades the whole UI when the language (and therefore the
+  // text direction) changes, instead of an abrupt LTR/RTL flip. Uses the
+  // native View Transitions API where available for a polished cross-fade,
+  // and falls back to a manual opacity transition everywhere else.
+  function switchLanguage(nextLang) {
+    if (nextLang === lang) return;
+    if (typeof document.startViewTransition === 'function') {
+      document.startViewTransition(() => {
+        flushSync(() => setLang(nextLang));
+      });
+    } else {
+      setLangFading(true);
+      window.setTimeout(() => {
+        setLang(nextLang);
+        requestAnimationFrame(() => setLangFading(false));
+      }, 160);
+    }
+  }
 
   const subtotal = useMemo(
     () => items.reduce((sum, it) => sum + (Number(it.qty) || 0) * (Number(it.unitPrice) || 0), 0),
@@ -258,7 +279,7 @@ export default function App() {
       setAmountPaid(entry.amountPaid);
       setPaymentType(entry.amountPaid === entry.total ? 'full' : 'custom');
     }
-    setLang(entry.lang || 'en');
+    switchLanguage(entry.lang || 'en');
     setHistoryOpen(false);
     setMobileView('preview');
   }
@@ -275,7 +296,7 @@ export default function App() {
   const orgList = Object.values(savedOrgs);
 
   return (
-    <div className="shell" dir={t.dir || 'ltr'}>
+    <div className={`shell${langFading ? ' lang-fading' : ''}`} dir={t.dir || 'ltr'}>
       <header className="topbar no-print">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
@@ -288,7 +309,12 @@ export default function App() {
           <span className="brand-name">{t.appName || 'Invoice Studio'}</span>
         </div>
         <div className="topbar-actions">
-          <button className="btn ghost" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>
+          <button
+            className="btn ghost lang-toggle"
+            onClick={() => switchLanguage(lang === 'en' ? 'ar' : 'en')}
+            aria-label="Switch language"
+          >
+            <span className="lang-toggle-icon" aria-hidden="true">🌐</span>
             {t.langToggle || 'العربية / English'}
           </button>
           <button className="btn ghost" onClick={() => setHistoryOpen(true)}>
@@ -304,7 +330,7 @@ export default function App() {
             {t.print || 'Print'}
           </button>
           <button className="btn primary" onClick={handleDownloadPdf}>
-            Save as PDF
+            {t.savePdf || 'Save as PDF'}
           </button>
         </div>
       </header>
@@ -325,15 +351,15 @@ export default function App() {
           <div className="field-grid two">
             <label className="field">
               <span>{t.invoiceNumber || 'Invoice No.'}</span>
-              <input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
+              <input dir="ltr" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
             </label>
             <label className="field">
               <span>{t.date || 'Date'}</span>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <input dir="ltr" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </label>
           </div>
 
-          <h2 className="section-subtitle">Buyer / Organization Information</h2>
+          <h2 className="section-subtitle">{t.buyerInfoSection || 'Buyer / Organization Information'}</h2>
           <div className="field-grid two">
             <label className="field">
               <span>{t.buyerName || 'Organization / Buyer Name'}</span>
@@ -365,15 +391,16 @@ export default function App() {
 
           <div className="field-grid two">
             <label className="field">
-              <span>CR Number <em className="hint">({t.optional || 'optional'})</em></span>
+              <span>{t.buyerCrNumber || 'CR Number'} <em className="hint">({t.optional || 'optional'})</em></span>
               <input
+                dir="ltr"
                 value={buyerCr}
                 onChange={(e) => setBuyerCr(e.target.value)}
                 onBlur={rememberOrganization}
               />
             </label>
             <label className="field">
-              <span>Buyer Address <em className="hint">({t.optional || 'optional'})</em></span>
+              <span>{t.buyerAddressLabel || 'Buyer Address'} <em className="hint">({t.optional || 'optional'})</em></span>
               <input
                 value={buyerAddress}
                 onChange={(e) => setBuyerAddress(e.target.value)}
@@ -384,16 +411,18 @@ export default function App() {
 
           <div className="field-grid two">
             <label className="field">
-              <span>Mobile / Phone <em className="hint">({t.optional || 'optional'})</em></span>
+              <span>{t.buyerPhoneLabel || 'Mobile / Phone'} <em className="hint">({t.optional || 'optional'})</em></span>
               <input
+                dir="ltr"
                 value={buyerPhone}
                 onChange={(e) => setBuyerPhone(e.target.value)}
                 onBlur={rememberOrganization}
               />
             </label>
             <label className="field">
-              <span>Email Address <em className="hint">({t.optional || 'optional'})</em></span>
+              <span>{t.buyerEmailLabel || 'Email Address'} <em className="hint">({t.optional || 'optional'})</em></span>
               <input
+                dir="ltr"
                 value={buyerEmail}
                 onChange={(e) => setBuyerEmail(e.target.value)}
                 onBlur={rememberOrganization}
@@ -401,27 +430,28 @@ export default function App() {
             </label>
           </div>
 
-          <h2 className="section-subtitle">Payment Terms & Split Payments</h2>
+          <h2 className="section-subtitle">{t.paymentSection || 'Payment Terms & Split Payments'}</h2>
           <div className="field-grid two">
             <label className="field">
-              <span>Payment Option</span>
+              <span>{t.paymentOption || 'Payment Option'}</span>
               <select className="select-input" value={paymentType} onChange={(e) => setPaymentType(e.target.value)}>
-                <option value="full">Paid Full</option>
-                <option value="half">Half Payment (50%)</option>
-                <option value="custom">Custom Partial Payment</option>
+                <option value="full">{t.paidFull || 'Paid Full'}</option>
+                <option value="half">{t.halfPayment || 'Half Payment (50%)'}</option>
+                <option value="custom">{t.customPartial || 'Custom Partial Payment'}</option>
               </select>
             </label>
             <label className="field">
-              <span>Due Date for Remaining Balance</span>
-              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <span>{t.dueDateForBalance || 'Due Date for Remaining Balance'}</span>
+              <input dir="ltr" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </label>
           </div>
 
           {paymentType !== 'full' && (
             <div className="field-grid two">
               <label className="field">
-                <span>Amount Paid</span>
+                <span>{t.amountPaidLabel || 'Amount Paid'}</span>
                 <input
+                  dir="ltr"
                   type="number"
                   min="0"
                   step="0.01"
@@ -430,8 +460,8 @@ export default function App() {
                 />
               </label>
               <label className="field">
-                <span>Remaining Balance</span>
-                <input type="text" readOnly value={formatMoney(balanceDue)} disabled />
+                <span>{t.remainingBalanceLabel || 'Remaining Balance'}</span>
+                <input dir="ltr" type="text" readOnly value={formatMoney(balanceDue)} disabled />
               </label>
             </div>
           )}
@@ -455,6 +485,7 @@ export default function App() {
                 />
                 <input
                   className="item-qty"
+                  dir="ltr"
                   type="number"
                   min="0"
                   step="1"
@@ -463,13 +494,14 @@ export default function App() {
                 />
                 <input
                   className="item-price"
+                  dir="ltr"
                   type="number"
                   min="0"
                   step="0.01"
                   value={it.unitPrice}
                   onChange={(e) => updateItem(it.id, { unitPrice: e.target.value })}
                 />
-                <span className="item-amount">
+                <span className="item-amount" dir="ltr">
                   {formatMoney((Number(it.qty) || 0) * (Number(it.unitPrice) || 0))}
                 </span>
                 <button
@@ -484,7 +516,7 @@ export default function App() {
             ))}
           </div>
           <button className="btn subtle add-line" onClick={addItem} type="button">
-            + Add line
+            {t.addLine || '+ Add line'}
           </button>
 
           <h2 className="section-subtitle">{t.notes || 'Notes'}</h2>
@@ -507,24 +539,24 @@ export default function App() {
                 <div className="seller-meta">
                   {agency.vatNumber && (
                     <span>
-                      VAT Number: <bdi dir="ltr">{agency.vatNumber}</bdi>
+                      {t.vatNumberLabel || 'VAT Number'}: <bdi dir="ltr">{agency.vatNumber}</bdi>
                     </span>
                   )}
                   {agency.crNumber && (
                     <span>
-                      C.R. Number: <bdi dir="ltr">{agency.crNumber}</bdi>
+                      {t.crNumberLabel || 'C.R. Number'}: <bdi dir="ltr">{agency.crNumber}</bdi>
                     </span>
                   )}
                 </div>
                 <div className="seller-meta">
                   {agency.phone && (
                     <span>
-                      Phone: <bdi dir="ltr">{agency.phone}</bdi>
+                      {t.phone || 'Phone'}: <bdi dir="ltr">{agency.phone}</bdi>
                     </span>
                   )}
                   {agency.email && (
                     <span>
-                      Email: <bdi dir="ltr">{agency.email}</bdi>
+                      {t.email || 'Email'}: <bdi dir="ltr">{agency.email}</bdi>
                     </span>
                   )}
                 </div>
@@ -546,7 +578,7 @@ export default function App() {
                 </div>
                 {dueDate && (
                   <div className="doc-date">
-                    Due Date: <bdi dir="ltr">{dueDate}</bdi>
+                    {t.dueDateInline || 'Due Date'}: <bdi dir="ltr">{dueDate}</bdi>
                   </div>
                 )}
               </div>
@@ -560,18 +592,18 @@ export default function App() {
               {buyerAddress && <div className="bill-to-meta">{buyerAddress}</div>}
               <div className="bill-to-meta-group">
                 {buyerVat && (
-                  <span>VAT: <bdi dir="ltr">{buyerVat}</bdi></span>
+                  <span>{t.vatShort || 'VAT'}: <bdi dir="ltr">{buyerVat}</bdi></span>
                 )}
                 {buyerCr && (
-                  <span>CR: <bdi dir="ltr">{buyerCr}</bdi></span>
+                  <span>{t.crShort || 'CR'}: <bdi dir="ltr">{buyerCr}</bdi></span>
                 )}
               </div>
               <div className="bill-to-meta-group">
                 {buyerPhone && (
-                  <span>Phone: <bdi dir="ltr">{buyerPhone}</bdi></span>
+                  <span>{t.phone || 'Phone'}: <bdi dir="ltr">{buyerPhone}</bdi></span>
                 )}
                 {buyerEmail && (
-                  <span>Email: <bdi dir="ltr">{buyerEmail}</bdi></span>
+                  <span>{t.email || 'Email'}: <bdi dir="ltr">{buyerEmail}</bdi></span>
                 )}
               </div>
             </div>
@@ -589,10 +621,10 @@ export default function App() {
                 {items.map((it) => (
                   <tr key={it.id}>
                     <td className="col-desc">{it.description || '—'}</td>
-                    <td className="col-num">{Number(it.qty) || 0}</td>
-                    <td className="col-num">{formatMoney(Number(it.unitPrice) || 0)}</td>
+                    <td className="col-num"><bdi dir="ltr">{Number(it.qty) || 0}</bdi></td>
+                    <td className="col-num"><bdi dir="ltr">{formatMoney(Number(it.unitPrice) || 0)}</bdi></td>
                     <td className="col-num">
-                      {formatMoney((Number(it.qty) || 0) * (Number(it.unitPrice) || 0))}
+                      <bdi dir="ltr">{formatMoney((Number(it.qty) || 0) * (Number(it.unitPrice) || 0))}</bdi>
                     </td>
                   </tr>
                 ))}
@@ -603,36 +635,36 @@ export default function App() {
               <div className="totals-inner">
                 <div className="totals-row">
                   <span>{t.subtotal || 'Subtotal'}</span>
-                  <span>
+                  <bdi dir="ltr" className="totals-amount">
                     {formatMoney(subtotal)} {t.sar || 'SAR'}
-                  </span>
+                  </bdi>
                 </div>
                 <div className="totals-row">
                   <span>{t.vat || 'VAT (15%)'}</span>
-                  <span>
+                  <bdi dir="ltr" className="totals-amount">
                     {formatMoney(vat)} {t.sar || 'SAR'}
-                  </span>
+                  </bdi>
                 </div>
                 <div className="totals-row total">
                   <span>{t.total || 'Total'}</span>
-                  <span>
+                  <bdi dir="ltr" className="totals-amount">
                     {formatMoney(total)} {t.sar || 'SAR'}
-                  </span>
+                  </bdi>
                 </div>
 
                 {paymentType !== 'full' && (
                   <>
                     <div className="totals-row split-row">
-                      <span>Paid Amount:</span>
-                      <span>
+                      <span>{t.paidAmountInline || 'Paid Amount'}:</span>
+                      <bdi dir="ltr" className="totals-amount">
                         {formatMoney(amountPaid)} {t.sar || 'SAR'}
-                      </span>
+                      </bdi>
                     </div>
                     <div className="totals-row split-row highlight">
-                      <span>Remaining Balance:</span>
-                      <span>
+                      <span>{t.remainingBalanceInline || 'Remaining Balance'}:</span>
+                      <bdi dir="ltr" className="totals-amount">
                         {formatMoney(balanceDue)} {t.sar || 'SAR'}
-                      </span>
+                      </bdi>
                     </div>
                   </>
                 )}
@@ -802,7 +834,10 @@ function HistoryDrawer({ t, history, onClose, onLoad, onDelete }) {
                 <div>
                   <div className="history-number">{h.invoiceNumber}</div>
                   <div className="history-meta">
-                    {h.buyerName || '—'} · {h.date} · {formatMoney(h.total)} SAR
+                    {h.buyerName || '—'} ·{' '}
+                    <bdi dir="ltr">
+                      {h.date} · {formatMoney(h.total)} {t.sar || 'SAR'}
+                    </bdi>
                   </div>
                 </div>
                 <div className="history-actions">

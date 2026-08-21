@@ -473,9 +473,10 @@
   font-size: 0.85rem;
   color: var(--ink);
 }
-.totals-row span:last-child {
+.totals-row .totals-amount {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
 }
 .totals-row.total {
   margin-top: 4px;
@@ -486,7 +487,7 @@
   font-size: 1.05rem;
   color: var(--accent-dark);
 }
-.totals-row.total span:last-child {
+.totals-row.total .totals-amount {
   font-family: var(--font-mono);
 }
 
@@ -717,6 +718,49 @@
   [dir="rtl"] .header-col.doc-block {
     text-align: center;
   }
+}
+
+/* ---------- Arabic typography fixes ---------- */
+/*
+ * letter-spacing and text-transform:uppercase are Latin-script conventions.
+ * Arabic is a cursive script whose letters must stay connected to their
+ * neighbours to be legible; adding letter-spacing breaks those connections
+ * and text-transform:uppercase has no defined effect on it. Everywhere the
+ * English UI uses these for stylistic emphasis, undo them for RTL so Arabic
+ * renders as properly joined, natural text.
+ */
+[dir='rtl'] .field span,
+[dir='rtl'] .item-row-head span,
+[dir='rtl'] .doc-title,
+[dir='rtl'] .bill-to-label,
+[dir='rtl'] .items-table th,
+[dir='rtl'] .notes-label {
+  letter-spacing: normal;
+  text-transform: none;
+}
+[dir='rtl'] .brand-name {
+  letter-spacing: normal;
+}
+
+/* Fields that are intentionally kept LTR inside an RTL form (invoice
+   numbers, dates, phone numbers, VAT/CR numbers, monetary inputs) should
+   still sit at the "end" of the field visually, matching where a reader's
+   eye naturally lands in a right-to-left layout. */
+[dir='rtl'] .field input[dir='ltr'],
+[dir='rtl'] .item-qty,
+[dir='rtl'] .item-price {
+  text-align: right;
+}
+
+/* Language toggle button */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.lang-toggle-icon {
+  font-size: 0.95em;
+  line-height: 1;
 }
 
 /* ---------- print ---------- */

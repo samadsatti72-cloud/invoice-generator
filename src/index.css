@@ -13,7 +13,23 @@
   --font-display: 'Fraunces', serif;
   --font-body: 'Inter', sans-serif;
   --font-arabic: 'Noto Kufi Arabic', sans-serif;
+  --font-arabic-display: 'Amiri', serif;
   --font-mono: 'IBM Plex Mono', monospace;
+}
+
+/*
+ * When the document flips to RTL, redefine the two font variables at the
+ * root. Because CSS custom properties inherit through the cascade, every
+ * rule anywhere in the app that already reads var(--font-display) or
+ * var(--font-body) automatically renders in a proper, legible Arabic
+ * typeface instead of silently falling back to the browser's default font
+ * (which is what happens when Latin-only webfonts like Fraunces/Inter are
+ * asked to render Arabic glyphs). Numbers stay on --font-mono either way,
+ * since digits render fine in a monospace face regardless of language.
+ */
+html[dir='rtl'] {
+  --font-display: var(--font-arabic-display);
+  --font-body: var(--font-arabic);
 }
 
 * {
@@ -34,10 +50,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-html[lang='ar'] body {
-  font-family: var(--font-arabic);
-}
-
 button,
 input,
 textarea {
@@ -51,4 +63,36 @@ button {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* ---------- smooth English \u2194 Arabic transition ---------- */
+
+/* Preferred path: native View Transitions API. The browser automatically
+   snapshots the page before/after the language state change and cross-fades
+   between them; we just tune the timing so the LTR/RTL flip feels gentle
+   rather than instant. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.32s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fallback path for browsers without View Transitions support: a manual
+   opacity/scale cross-fade driven by the `.lang-fading` class. */
+.shell {
+  transition: opacity 0.16s ease, filter 0.16s ease;
+}
+.shell.lang-fading {
+  opacity: 0;
+  filter: blur(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.001s;
+  }
+  .shell {
+    transition: none;
+  }
 }
