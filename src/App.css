@@ -312,7 +312,8 @@
   font-weight: 600;
   font-size: 1.15rem;
   display: inline-block;
-  text-align: center;
+  text-align: start;
+  text-align-last: center;
   line-height: 1.35;
   margin-bottom: 6px;
 }
