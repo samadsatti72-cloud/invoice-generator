@@ -1,0 +1,47 @@
+{
+  "name": "license-desktop-client",
+  "version": "1.0.0",
+  "description": "Desktop client for subscription license management",
+  "main": "dist/main.js",
+  "homepage": "./",
+  "scripts": {
+    "dev": "concurrently \"npm run electron-dev\" \"npm run react-start\"",
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "electron-dev": "electron .",
+    "electron-build": "npm run react-build && electron-builder",
+    "build": "npm run react-build && npm run electron-build",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "axios": "^1.6.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4",
+    "react-scripts": "5.0.1",
+    "typescript": "^5.3.3",
+    "concurrently": "^8.2.2"
+  },
+  "homepage": "./",
+  "main": "public/electron.js",
+  "build": {
+    "appId": "com.license-client.app",
+    "productName": "License Manager",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "public/electron.js"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  }
+}
