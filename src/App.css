@@ -149,6 +149,42 @@
   color: var(--accent-dark);
 }
 
+/* ---------- document type toggle ---------- */
+.doctype-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.doctype-toggle {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--accent-soft);
+  border-radius: 999px;
+  gap: 2px;
+}
+.doctype-toggle button {
+  border: none;
+  background: transparent;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent-dark);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.doctype-toggle button.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(15, 107, 92, 0.35);
+}
+.doctype-toggle button:not(.active):hover {
+  background: #d5e8e0;
+}
+
 .field-grid.two {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -176,7 +212,6 @@
   letter-spacing: 0;
 }
 .field input,
-.field textarea,
 .select-input,
 .notes-input {
   width: 100%;
@@ -188,7 +223,6 @@
   background: var(--paper);
 }
 .field input:focus,
-.field textarea:focus,
 .select-input:focus,
 .notes-input:focus {
   border-color: var(--accent);
@@ -313,8 +347,6 @@
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.15rem;
-  line-height: 1.35;
-  margin-bottom: 6px;
 }
 .seller-address {
   color: var(--ink-soft);
@@ -330,14 +362,6 @@
   font-size: 0.72rem;
   color: var(--ink-soft);
   margin-top: 4px;
-}
-.seller-meta-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--ink-soft);
 }
 
 .header-col.doc-block {
@@ -363,7 +387,13 @@
   margin-top: 2px;
 }
 
-
+/* RTL Adjustments for Header Columns */
+[dir="rtl"] .header-col.seller-info {
+  text-align: end;
+}
+[dir="rtl"] .header-col.doc-block {
+  text-align: start;
+}
 
 .ledger-rule {
   height: 1px;
@@ -509,6 +539,94 @@
   font-weight: 600;
   color: var(--accent-dark);
 }
+.totals-row.discount-row {
+  color: #b3492f;
+}
+.totals-row.discount-row .totals-amount {
+  color: #b3492f;
+}
+
+/* ---------- installment / yearly payment plan ---------- */
+.installment-plan {
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.installment-preview {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+.installment-preview-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.installment-preview-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.installment-preview-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 0.78rem;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+.installment-preview-list li:last-child {
+  border-bottom: none;
+}
+.installment-preview-list li span:first-child {
+  color: var(--ink-soft);
+  min-width: 28px;
+}
+
+.installment-schedule-block {
+  margin: 16px 0;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+.installment-schedule-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.installment-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.installment-table th {
+  text-align: start;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.installment-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+.installment-table th:not(:first-child),
+.installment-table td:not(:first-child) {
+  text-align: end;
+}
 
 .notes-block {
   margin-top: 20px;
@@ -531,23 +649,8 @@
 
 .sheet-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  justify-content: flex-end;
   margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px dashed var(--line);
-}
-.footer-details {
-  font-size: 0.8rem;
-  color: var(--ink-soft);
-}
-.footer-details .seller-address {
-  margin-top: 0;
-  margin-bottom: 4px;
-  max-width: none;
-}
-.seller-email {
-  font-family: var(--font-mono);
 }
 .qr-block {
   display: flex;
@@ -657,6 +760,26 @@
   font-family: var(--font-mono);
   font-weight: 600;
   font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.doc-badge {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.doc-badge.invoice {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+.doc-badge.quotation {
+  background: #fbe9d9;
+  color: #9a5b1f;
 }
 .history-meta {
   color: var(--ink-soft);
@@ -756,7 +879,10 @@
 [dir='rtl'] .doc-title,
 [dir='rtl'] .bill-to-label,
 [dir='rtl'] .items-table th,
-[dir='rtl'] .notes-label {
+[dir='rtl'] .notes-label,
+[dir='rtl'] .doc-badge,
+[dir='rtl'] .installment-preview-title,
+[dir='rtl'] .installment-schedule-title {
   letter-spacing: normal;
   text-transform: none;
 }
@@ -786,8 +912,9 @@
 [dir='rtl'] .bill-to-meta,
 [dir='rtl'] .bill-to-meta-group,
 [dir='rtl'] .seller-meta,
-[dir='rtl'] .seller-meta-stack,
 [dir='rtl'] .notes-text,
+[dir='rtl'] .installment-table td,
+[dir='rtl'] .installment-preview-list li,
 [dir='rtl'] .history-meta {
   font-family: var(--font-arabic-dense);
 }
@@ -795,8 +922,7 @@
   font-weight: 500;
 }
 [dir='rtl'] .bill-to-meta-group,
-[dir='rtl'] .seller-meta,
-[dir='rtl'] .seller-meta-stack {
+[dir='rtl'] .seller-meta {
   font-weight: 700;
 }
 

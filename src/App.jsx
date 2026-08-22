@@ -7,6 +7,7 @@ import './App.css';
 
 const SETTINGS_KEY = 'invoiceapp.agencySettings';
 const COUNTER_KEY = 'invoiceapp.counter';
+const QUOTE_COUNTER_KEY = 'invoiceapp.quoteCounter';
 const HISTORY_KEY = 'invoiceapp.history';
 const LANG_KEY = 'invoiceapp.language';
 const ORGANIZATIONS_KEY = 'invoiceapp.organizations';
@@ -44,10 +45,12 @@ function loadJSON(key, fallback) {
   }
 }
 
-function nextInvoiceNumber() {
-  const n = loadJSON(COUNTER_KEY, 0) + 1;
-  localStorage.setItem(COUNTER_KEY, JSON.stringify(n));
-  return `INV-${String(n).padStart(4, '0')}`;
+function nextDocNumber(type) {
+  const key = type === 'quotation' ? QUOTE_COUNTER_KEY : COUNTER_KEY;
+  const prefix = type === 'quotation' ? 'QUO' : 'INV';
+  const n = loadJSON(key, 0) + 1;
+  localStorage.setItem(key, JSON.stringify(n));
+  return `${prefix}-${String(n).padStart(4, '0')}`;
 }
 
 function formatMoney(n) {
@@ -67,10 +70,11 @@ export default function App() {
   const [history, setHistory] = useState(() => loadJSON(HISTORY_KEY, []));
   const [savedOrgs, setSavedOrgs] = useState(() => loadJSON(ORGANIZATIONS_KEY, {}));
 
-  const [invoiceNumber, setInvoiceNumber] = useState(() => nextInvoiceNumber());
+  const [invoiceNumber, setInvoiceNumber] = useState(() => nextDocNumber('invoice'));
   const [date, setDate] = useState(() => todayISO());
   const [dueDate, setDueDate] = useState('');
-  
+  const [docType, setDocType] = useState('invoice'); // 'invoice' | 'quotation'
+
   const [buyerName, setBuyerName] = useState('');
   const [buyerVat, setBuyerVat] = useState('');
   const [buyerCr, setBuyerCr] = useState('');
@@ -82,6 +86,11 @@ export default function App() {
   const [items, setItems] = useState(() => [emptyItem()]);
   const [paymentType, setPaymentType] = useState('full');
   const [amountPaid, setAmountPaid] = useState(0);
+  const [discountType, setDiscountType] = useState('none'); // 'none' | 'percent' | 'fixed'
+  const [discountValue, setDiscountValue] = useState(0);
+  const [installmentCount, setInstallmentCount] = useState(12);
+  const [installmentFrequency, setInstallmentFrequency] = useState('monthly'); // 'monthly' | 'quarterly'
+  const [installmentStart, setInstallmentStart] = useState(() => todayISO());
   const [qrUrl, setQrUrl] = useState(null);
   const [mobileView, setMobileView] = useState('edit');
   const [langFading, setLangFading] = useState(false);
@@ -117,8 +126,34 @@ export default function App() {
     () => items.reduce((sum, it) => sum + (Number(it.qty) || 0) * (Number(it.unitPrice) || 0), 0),
     [items]
   );
-  const vat = subtotal * 0.15;
-  const total = subtotal + vat;
+  const discountAmount = useMemo(() => {
+    if (discountType === 'percent') return subtotal * (Math.min(100, Math.max(0, Number(discountValue) || 0)) / 100);
+    if (discountType === 'fixed') return Math.min(subtotal, Math.max(0, Number(discountValue) || 0));
+    return 0;
+  }, [discountType, discountValue, subtotal]);
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+  const vat = discountedSubtotal * 0.15;
+  const total = discountedSubtotal + vat;
+
+  // Splits `total` into N evenly-sized installments (e.g. a 12-month yearly
+  // plan). The last installment absorbs any rounding remainder so the
+  // installments always sum exactly back to the total.
+  const installmentSchedule = useMemo(() => {
+    if (paymentType !== 'installments') return [];
+    const count = Math.max(1, Math.round(Number(installmentCount)) || 1);
+    const base = Math.floor((total / count) * 100) / 100;
+    const start = installmentStart ? new Date(`${installmentStart}T12:00:00`) : new Date();
+    const rows = [];
+    let allocated = 0;
+    for (let i = 0; i < count; i++) {
+      const amount = i === count - 1 ? Math.round((total - allocated) * 100) / 100 : base;
+      allocated += amount;
+      const due = new Date(start);
+      due.setMonth(due.getMonth() + i * (installmentFrequency === 'quarterly' ? 3 : 1));
+      rows.push({ index: i + 1, dueDate: due.toISOString().slice(0, 10), amount });
+    }
+    return rows;
+  }, [paymentType, installmentCount, installmentFrequency, installmentStart, total]);
 
   useEffect(() => {
     if (paymentType === 'full') {
@@ -131,6 +166,10 @@ export default function App() {
   const balanceDue = useMemo(() => Math.max(0, total - (Number(amountPaid) || 0)), [total, amountPaid]);
 
   useEffect(() => {
+    if (docType !== 'invoice') {
+      setQrUrl(null);
+      return;
+    }
     const sellerName = lang === 'ar' ? agency.nameAr || agency.nameEn : agency.nameEn || agency.nameAr;
     let cancelled = false;
     generateZatcaQrDataUrl({
@@ -145,7 +184,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [agency.nameAr, agency.nameEn, agency.vatNumber, date, total, vat, lang]);
+  }, [agency.nameAr, agency.nameEn, agency.vatNumber, date, total, vat, lang, docType]);
 
   function updateItem(id, patch) {
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
@@ -207,8 +246,32 @@ export default function App() {
     reader.readAsDataURL(file);
   }
 
+  function handleDocTypeChange(next) {
+    if (next === docType) return;
+    setDocType(next);
+    setInvoiceNumber(nextDocNumber(next));
+  }
+
+  // Turns the current quotation into a real invoice: assigns a fresh
+  // invoice number (from the invoice counter, not the quotation counter)
+  // and switches on normal payment terms, while keeping every line item,
+  // buyer, and note exactly as quoted.
+  function convertToInvoice() {
+    setDocType('invoice');
+    setInvoiceNumber(nextDocNumber('invoice'));
+    setPaymentType('full');
+  }
+
+  // Clones the current document (same type) under a brand-new number, for
+  // repeat clients or recurring line items, without retyping everything.
+  function duplicateDocument() {
+    setInvoiceNumber(nextDocNumber(docType));
+    setDate(todayISO());
+  }
+
   function startNewInvoice() {
-    setInvoiceNumber(nextInvoiceNumber());
+    setDocType('invoice');
+    setInvoiceNumber(nextDocNumber('invoice'));
     setDate(todayISO());
     setDueDate('');
     setBuyerName('');
@@ -219,6 +282,11 @@ export default function App() {
     setBuyerEmail('');
     setNotes('');
     setPaymentType('full');
+    setDiscountType('none');
+    setDiscountValue(0);
+    setInstallmentCount(12);
+    setInstallmentFrequency('monthly');
+    setInstallmentStart(todayISO());
     setItems([emptyItem()]);
     setMobileView('edit');
   }
@@ -227,6 +295,7 @@ export default function App() {
     rememberOrganization();
     const entry = {
       id: uid(),
+      docType,
       invoiceNumber,
       date,
       dueDate,
@@ -237,8 +306,14 @@ export default function App() {
       buyerPhone,
       buyerEmail,
       total,
+      discountType,
+      discountValue,
+      paymentType,
       amountPaid,
       balanceDue,
+      installmentCount,
+      installmentFrequency,
+      installmentStart,
       items,
       notes,
       lang,
@@ -268,6 +343,7 @@ export default function App() {
   }
 
   function loadFromHistory(entry) {
+    setDocType(entry.docType || 'invoice');
     setInvoiceNumber(entry.invoiceNumber);
     setDate(entry.date);
     setDueDate(entry.dueDate || '');
@@ -279,10 +355,17 @@ export default function App() {
     setBuyerEmail(entry.buyerEmail || '');
     if (entry.items) setItems(entry.items);
     if (entry.notes) setNotes(entry.notes);
-    if (entry.amountPaid !== undefined) {
-      setAmountPaid(entry.amountPaid);
+    setDiscountType(entry.discountType || 'none');
+    setDiscountValue(entry.discountValue || 0);
+    if (entry.installmentCount) setInstallmentCount(entry.installmentCount);
+    if (entry.installmentFrequency) setInstallmentFrequency(entry.installmentFrequency);
+    if (entry.installmentStart) setInstallmentStart(entry.installmentStart);
+    if (entry.paymentType) {
+      setPaymentType(entry.paymentType);
+    } else if (entry.amountPaid !== undefined) {
       setPaymentType(entry.amountPaid === entry.total ? 'full' : 'custom');
     }
+    if (entry.amountPaid !== undefined) setAmountPaid(entry.amountPaid);
     switchLanguage(entry.lang || 'en');
     setHistoryOpen(false);
     setMobileView('preview');
@@ -330,6 +413,9 @@ export default function App() {
           <button className="btn subtle" onClick={startNewInvoice}>
             {t.newInvoice || 'New Invoice'}
           </button>
+          <button className="btn ghost" onClick={duplicateDocument}>
+            {t.duplicateDoc || 'Duplicate'}
+          </button>
           <button className="btn ghost" onClick={handlePrint}>
             {t.print || 'Print'}
           </button>
@@ -352,9 +438,37 @@ export default function App() {
         <section className={`editor no-print ${mobileView === 'edit' ? '' : 'mobile-hidden'}`}>
           <h1 className="section-title">{t.editorTitle || 'Invoice Details'}</h1>
 
+          <div className="doctype-row">
+            <div className="doctype-toggle" role="tablist" aria-label={t.docTypeToggleLabel || 'Document Type'}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={docType === 'invoice'}
+                className={docType === 'invoice' ? 'active' : ''}
+                onClick={() => handleDocTypeChange('invoice')}
+              >
+                {t.docTypeInvoice || 'Tax Invoice'}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={docType === 'quotation'}
+                className={docType === 'quotation' ? 'active' : ''}
+                onClick={() => handleDocTypeChange('quotation')}
+              >
+                {t.docTypeQuotation || 'Quotation'}
+              </button>
+            </div>
+            {docType === 'quotation' && (
+              <button type="button" className="btn subtle" onClick={convertToInvoice}>
+                {t.convertToInvoice || 'Convert to Invoice'}
+              </button>
+            )}
+          </div>
+
           <div className="field-grid two">
             <label className="field">
-              <span>{t.invoiceNumber || 'Invoice No.'}</span>
+              <span>{docType === 'quotation' ? t.quotationNumber || 'Quotation No.' : t.invoiceNumber || 'Invoice No.'}</span>
               <input dir="ltr" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
             </label>
             <label className="field">
@@ -434,41 +548,138 @@ export default function App() {
             </label>
           </div>
 
-          <h2 className="section-subtitle">{t.paymentSection || 'Payment Terms & Split Payments'}</h2>
+          {docType === 'invoice' ? (
+            <>
+              <h2 className="section-subtitle">{t.paymentSection || 'Payment Terms & Split Payments'}</h2>
+              <div className="field-grid two">
+                <label className="field">
+                  <span>{t.paymentOption || 'Payment Option'}</span>
+                  <select className="select-input" value={paymentType} onChange={(e) => setPaymentType(e.target.value)}>
+                    <option value="full">{t.paidFull || 'Paid Full'}</option>
+                    <option value="half">{t.halfPayment || 'Half Payment (50%)'}</option>
+                    <option value="custom">{t.customPartial || 'Custom Partial Payment'}</option>
+                    <option value="installments">{t.paymentInstallments || 'Yearly Payment Plan (Installments)'}</option>
+                  </select>
+                </label>
+                <label className="field">
+                  <span>{t.dueDateForBalance || 'Due Date for Remaining Balance'}</span>
+                  <input dir="ltr" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                </label>
+              </div>
+
+              {(paymentType === 'half' || paymentType === 'custom') && (
+                <div className="field-grid two">
+                  <label className="field">
+                    <span>{t.amountPaidLabel || 'Amount Paid'}</span>
+                    <input
+                      dir="ltr"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={amountPaid}
+                      onChange={(e) => setAmountPaid(Number(e.target.value))}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>{t.remainingBalanceLabel || 'Remaining Balance'}</span>
+                    <input dir="ltr" type="text" readOnly value={formatMoney(balanceDue)} disabled />
+                  </label>
+                </div>
+              )}
+
+              {paymentType === 'installments' && (
+                <div className="installment-plan">
+                  <div className="field-grid two">
+                    <label className="field">
+                      <span>{t.installmentCountLabel || 'Number of Installments'}</span>
+                      <input
+                        dir="ltr"
+                        type="number"
+                        min="2"
+                        max="60"
+                        step="1"
+                        value={installmentCount}
+                        onChange={(e) => setInstallmentCount(e.target.value)}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>{t.installmentFrequencyLabel || 'Frequency'}</span>
+                      <select
+                        className="select-input"
+                        value={installmentFrequency}
+                        onChange={(e) => setInstallmentFrequency(e.target.value)}
+                      >
+                        <option value="monthly">{t.frequencyMonthly || 'Monthly'}</option>
+                        <option value="quarterly">{t.frequencyQuarterly || 'Quarterly'}</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div className="field-grid two">
+                    <label className="field">
+                      <span>{t.installmentStartLabel || 'First Payment Date'}</span>
+                      <input
+                        dir="ltr"
+                        type="date"
+                        value={installmentStart}
+                        onChange={(e) => setInstallmentStart(e.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <div className="installment-preview">
+                    <div className="installment-preview-title">
+                      {t.installmentScheduleTitle || 'Payment Schedule'}
+                    </div>
+                    <ul className="installment-preview-list">
+                      {installmentSchedule.map((row) => (
+                        <li key={row.index}>
+                          <span>#{row.index}</span>
+                          <bdi dir="ltr">{row.dueDate}</bdi>
+                          <bdi dir="ltr">
+                            {formatMoney(row.amount)} {t.sar || 'SAR'}
+                          </bdi>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <h2 className="section-subtitle">{t.quotationValiditySection || 'Quotation Validity'}</h2>
+              <div className="field-grid two">
+                <label className="field">
+                  <span>{t.validUntil || 'Valid Until'}</span>
+                  <input dir="ltr" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                </label>
+              </div>
+            </>
+          )}
+
+          <h2 className="section-subtitle">{t.discountLabel || 'Discount'}</h2>
           <div className="field-grid two">
             <label className="field">
-              <span>{t.paymentOption || 'Payment Option'}</span>
-              <select className="select-input" value={paymentType} onChange={(e) => setPaymentType(e.target.value)}>
-                <option value="full">{t.paidFull || 'Paid Full'}</option>
-                <option value="half">{t.halfPayment || 'Half Payment (50%)'}</option>
-                <option value="custom">{t.customPartial || 'Custom Partial Payment'}</option>
+              <span>{t.discountLabel || 'Discount'}</span>
+              <select className="select-input" value={discountType} onChange={(e) => setDiscountType(e.target.value)}>
+                <option value="none">{t.discountNone || 'No discount'}</option>
+                <option value="percent">{t.discountPercent || 'Percentage (%)'}</option>
+                <option value="fixed">{t.discountFixed || 'Fixed amount'}</option>
               </select>
             </label>
-            <label className="field">
-              <span>{t.dueDateForBalance || 'Due Date for Remaining Balance'}</span>
-              <input dir="ltr" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-            </label>
-          </div>
-
-          {paymentType !== 'full' && (
-            <div className="field-grid two">
+            {discountType !== 'none' && (
               <label className="field">
-                <span>{t.amountPaidLabel || 'Amount Paid'}</span>
+                <span>{t.discountValueLabel || 'Discount Value'}</span>
                 <input
                   dir="ltr"
                   type="number"
                   min="0"
                   step="0.01"
-                  value={amountPaid}
-                  onChange={(e) => setAmountPaid(Number(e.target.value))}
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(e.target.value)}
                 />
               </label>
-              <label className="field">
-                <span>{t.remainingBalanceLabel || 'Remaining Balance'}</span>
-                <input dir="ltr" type="text" readOnly value={formatMoney(balanceDue)} disabled />
-              </label>
-            </div>
-          )}
+            )}
+          </div>
 
           <h2 className="section-subtitle">{t.description || 'Description'}</h2>
           <div className="items-editor">
@@ -538,32 +749,30 @@ export default function App() {
           <div className="invoice-sheet" id="invoice-sheet">
             <div className="sheet-header centered-logo-header">
               <div className="header-col seller-info">
-                <div className="seller-name">
-                  {agencyDisplayName ? (
-                    agencyDisplayName.split('\n').map((line, i) => (
-                      <div key={i} style={i === 0 ? { textAlign: 'start' } : { textAlign: 'center' }}>
-                        {line}
-                      </div>
-                    ))
-                  ) : (
-                    '—'
-                  )}
-                </div>
-                <div className="seller-meta-stack">
+                <div className="seller-name">{agencyDisplayName || '—'}</div>
+                {agencyDisplayAddress && <div className="seller-address">{agencyDisplayAddress}</div>}
+                <div className="seller-meta">
                   {agency.vatNumber && (
-                    <div>
+                    <span>
                       {t.vatNumberLabel || 'VAT Number'}: <bdi dir="ltr">{agency.vatNumber}</bdi>
-                    </div>
+                    </span>
                   )}
                   {agency.crNumber && (
-                    <div>
+                    <span>
                       {t.crNumberLabel || 'C.R. Number'}: <bdi dir="ltr">{agency.crNumber}</bdi>
-                    </div>
+                    </span>
                   )}
+                </div>
+                <div className="seller-meta">
                   {agency.phone && (
-                    <div>
+                    <span>
                       {t.phone || 'Phone'}: <bdi dir="ltr">{agency.phone}</bdi>
-                    </div>
+                    </span>
+                  )}
+                  {agency.email && (
+                    <span>
+                      {t.email || 'Email'}: <bdi dir="ltr">{agency.email}</bdi>
+                    </span>
                   )}
                 </div>
               </div>
@@ -577,14 +786,17 @@ export default function App() {
               </div>
 
               <div className="header-col doc-block">
-                <div className="doc-title">{t.invoiceTitle || 'TAX INVOICE'}</div>
+                <div className="doc-title">
+                  {docType === 'quotation' ? t.quotationTitle || 'QUOTATION' : t.invoiceTitle || 'TAX INVOICE'}
+                </div>
                 <div className="doc-number">{invoiceNumber}</div>
                 <div className="doc-date">
                   {t.date || 'Date'}: <bdi dir="ltr">{date}</bdi>
                 </div>
                 {dueDate && (
                   <div className="doc-date">
-                    {t.dueDateInline || 'Due Date'}: <bdi dir="ltr">{dueDate}</bdi>
+                    {docType === 'quotation' ? t.validUntil || 'Valid Until' : t.dueDateInline || 'Due Date'}:{' '}
+                    <bdi dir="ltr">{dueDate}</bdi>
                   </div>
                 )}
               </div>
@@ -593,7 +805,9 @@ export default function App() {
             <div className="ledger-rule" />
 
             <div className="bill-to">
-              <div className="bill-to-label">{t.billTo || 'Billed To'}</div>
+              <div className="bill-to-label">
+                {docType === 'quotation' ? t.quotationFor || 'Quotation For' : t.billTo || 'Billed To'}
+              </div>
               <div className="bill-to-name">{buyerName || '—'}</div>
               {buyerAddress && <div className="bill-to-meta">{buyerAddress}</div>}
               <div className="bill-to-meta-group">
@@ -645,6 +859,14 @@ export default function App() {
                     {formatMoney(subtotal)} {t.sar || 'SAR'}
                   </bdi>
                 </div>
+                {discountAmount > 0 && (
+                  <div className="totals-row discount-row">
+                    <span>{t.discountLabel || 'Discount'}</span>
+                    <bdi dir="ltr" className="totals-amount">
+                      -{formatMoney(discountAmount)} {t.sar || 'SAR'}
+                    </bdi>
+                  </div>
+                )}
                 <div className="totals-row">
                   <span>{t.vat || 'VAT (15%)'}</span>
                   <bdi dir="ltr" className="totals-amount">
@@ -652,13 +874,13 @@ export default function App() {
                   </bdi>
                 </div>
                 <div className="totals-row total">
-                  <span>{t.total || 'Total'}</span>
+                  <span>{docType === 'quotation' ? t.estimatedTotal || 'Estimated Total' : t.total || 'Total'}</span>
                   <bdi dir="ltr" className="totals-amount">
                     {formatMoney(total)} {t.sar || 'SAR'}
                   </bdi>
                 </div>
 
-                {paymentType !== 'full' && (
+                {docType === 'invoice' && (paymentType === 'half' || paymentType === 'custom') && (
                   <>
                     <div className="totals-row split-row">
                       <span>{t.paidAmountInline || 'Paid Amount'}:</span>
@@ -677,6 +899,38 @@ export default function App() {
               </div>
             </div>
 
+            {docType === 'invoice' && paymentType === 'installments' && installmentSchedule.length > 0 && (
+              <div className="installment-schedule-block">
+                <div className="installment-schedule-title">
+                  {t.installmentScheduleTitle || 'Payment Schedule'}
+                </div>
+                <table className="installment-table">
+                  <thead>
+                    <tr>
+                      <th>{t.installmentNumberCol || '#'}</th>
+                      <th>{t.installmentDueCol || 'Due Date'}</th>
+                      <th>{t.installmentAmountCol || 'Amount'}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {installmentSchedule.map((row) => (
+                      <tr key={row.index}>
+                        <td>{row.index}</td>
+                        <td>
+                          <bdi dir="ltr">{row.dueDate}</bdi>
+                        </td>
+                        <td>
+                          <bdi dir="ltr">
+                            {formatMoney(row.amount)} {t.sar || 'SAR'}
+                          </bdi>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             {notes && (
               <div className="notes-block">
                 <div className="notes-label">{t.notes || 'Notes'}</div>
@@ -685,15 +939,7 @@ export default function App() {
             )}
 
             <div className="sheet-footer">
-              <div className="footer-details">
-                {agencyDisplayAddress && <div className="seller-address">{agencyDisplayAddress}</div>}
-                {agency.email && (
-                  <div className="seller-email">
-                    {t.email || 'Email'}: <bdi dir="ltr">{agency.email}</bdi>
-                  </div>
-                )}
-              </div>
-              {qrUrl && (
+              {docType === 'invoice' && qrUrl && (
                 <div className="qr-block">
                   <img src={qrUrl} alt="ZATCA QR" width={84} height={84} />
                   <span>{t.scanToVerify || 'Scan to verify'}</span>
@@ -788,11 +1034,11 @@ function SettingsModal({ t, agency, onCancel, onSave, onAutosave, fileInputRef }
         <div className="field-grid two">
           <label className="field">
             <span>{t.agencyName || 'Agency Name (EN)'}</span>
-            <textarea rows={2} value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} />
+            <input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} />
           </label>
           <label className="field">
             <span>{t.agencyNameAr || 'Agency Name (AR)'}</span>
-            <textarea dir="rtl" rows={2} value={form.nameAr} onChange={(e) => set('nameAr', e.target.value)} />
+            <input dir="rtl" value={form.nameAr} onChange={(e) => set('nameAr', e.target.value)} />
           </label>
         </div>
 
@@ -859,7 +1105,12 @@ function HistoryDrawer({ t, history, onClose, onLoad, onDelete }) {
             {history.map((h) => (
               <li key={h.id} className="history-item">
                 <div>
-                  <div className="history-number">{h.invoiceNumber}</div>
+                  <div className="history-number">
+                    {h.invoiceNumber}
+                    <span className={`doc-badge ${h.docType === 'quotation' ? 'quotation' : 'invoice'}`}>
+                      {h.docType === 'quotation' ? t.docBadgeQuotation || 'Quotation' : t.docBadgeInvoice || 'Invoice'}
+                    </span>
+                  </div>
                   <div className="history-meta">
                     {h.buyerName || '—'} ·{' '}
                     <bdi dir="ltr">
