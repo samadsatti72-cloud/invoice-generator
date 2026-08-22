@@ -45,11 +45,38 @@ function loadJSON(key, fallback) {
   }
 }
 
-function nextDocNumber(type) {
+// localStorage.setItem throws in Safari private browsing, and can throw
+// once quota is exceeded — every save/print/export path relies on it
+// succeeding, so a bare call risks crashing those actions. Swallow and
+// report instead of letting it bubble up as an uncaught exception.
+function saveJSON(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (err) {
+    console.error(`Could not save ${key} to local storage`, err);
+    return false;
+  }
+}
+
+// Invoice/quotation numbers must stay gapless for tax-compliance reasons —
+// so the counter is only ever incremented at the moment a document is
+// actually saved (see commitDocNumber), never just for having been
+// displayed. peekDocNumber previews what the *next* number would be
+// without consuming it, so opening the app or switching tabs doesn't burn
+// numbers that were never used.
+function peekDocNumber(type) {
   const key = type === 'quotation' ? QUOTE_COUNTER_KEY : COUNTER_KEY;
   const prefix = type === 'quotation' ? 'QUO' : 'INV';
   const n = loadJSON(key, 0) + 1;
-  localStorage.setItem(key, JSON.stringify(n));
+  return `${prefix}-${String(n).padStart(4, '0')}`;
+}
+
+function commitDocNumber(type) {
+  const key = type === 'quotation' ? QUOTE_COUNTER_KEY : COUNTER_KEY;
+  const prefix = type === 'quotation' ? 'QUO' : 'INV';
+  const n = loadJSON(key, 0) + 1;
+  saveJSON(key, n);
   return `${prefix}-${String(n).padStart(4, '0')}`;
 }
 
@@ -70,7 +97,11 @@ export default function App() {
   const [history, setHistory] = useState(() => loadJSON(HISTORY_KEY, []));
   const [savedOrgs, setSavedOrgs] = useState(() => loadJSON(ORGANIZATIONS_KEY, {}));
 
-  const [invoiceNumber, setInvoiceNumber] = useState(() => nextDocNumber('invoice'));
+  const [invoiceNumber, setInvoiceNumber] = useState(() => peekDocNumber('invoice'));
+  // Tracks whether `invoiceNumber` has been committed to the counter (or is
+  // an existing/user-typed number that shouldn't be re-allocated). Starts
+  // false because the initial number above is only a preview.
+  const [numberCommitted, setNumberCommitted] = useState(false);
   const [date, setDate] = useState(() => todayISO());
   const [dueDate, setDueDate] = useState('');
   const [docType, setDocType] = useState('invoice'); // 'invoice' | 'quotation'
@@ -100,7 +131,7 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dir = t.dir || 'ltr';
     document.documentElement.lang = lang;
-    localStorage.setItem(LANG_KEY, JSON.stringify(lang));
+    saveJSON(LANG_KEY, lang);
   }, [lang, t.dir]);
 
   // Smoothly cross-fades the whole UI when the language (and therefore the
@@ -225,12 +256,12 @@ export default function App() {
       },
     };
     setSavedOrgs(updated);
-    localStorage.setItem(ORGANIZATIONS_KEY, JSON.stringify(updated));
+    saveJSON(ORGANIZATIONS_KEY, updated);
   }
 
   function persistAgency(next) {
     setAgency(next);
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+    saveJSON(SETTINGS_KEY, next);
   }
 
   function saveAgency(next) {
@@ -238,40 +269,42 @@ export default function App() {
     setSettingsOpen(false);
   }
 
-  function handleLogoFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setAgency((a) => ({ ...a, logo: reader.result }));
-    reader.readAsDataURL(file);
-  }
-
+  // Switching between Invoice/Quotation just previews what the next number
+  // in that series would be — it isn't committed until the document is
+  // actually saved, so toggling back and forth (or refreshing) can't burn
+  // numbers out of the sequence.
   function handleDocTypeChange(next) {
     if (next === docType) return;
     setDocType(next);
-    setInvoiceNumber(nextDocNumber(next));
+    setInvoiceNumber(peekDocNumber(next));
+    setNumberCommitted(false);
   }
 
   // Turns the current quotation into a real invoice: assigns a fresh
   // invoice number (from the invoice counter, not the quotation counter)
   // and switches on normal payment terms, while keeping every line item,
-  // buyer, and note exactly as quoted.
+  // buyer, and note exactly as quoted. This is a deliberate, one-off action
+  // (not just navigation), so the number is committed immediately.
   function convertToInvoice() {
     setDocType('invoice');
-    setInvoiceNumber(nextDocNumber('invoice'));
+    setInvoiceNumber(commitDocNumber('invoice'));
+    setNumberCommitted(true);
     setPaymentType('full');
   }
 
   // Clones the current document (same type) under a brand-new number, for
   // repeat clients or recurring line items, without retyping everything.
+  // Also a deliberate action, so commit immediately.
   function duplicateDocument() {
-    setInvoiceNumber(nextDocNumber(docType));
+    setInvoiceNumber(commitDocNumber(docType));
+    setNumberCommitted(true);
     setDate(todayISO());
   }
 
   function startNewInvoice() {
     setDocType('invoice');
-    setInvoiceNumber(nextDocNumber('invoice'));
+    setInvoiceNumber(peekDocNumber('invoice'));
+    setNumberCommitted(false);
     setDate(todayISO());
     setDueDate('');
     setBuyerName('');
@@ -293,10 +326,20 @@ export default function App() {
 
   function saveToHistory() {
     rememberOrganization();
+    // First time this document is actually being saved/printed/exported —
+    // commit its previewed number now so the counter only advances for
+    // documents that really exist. If the number was already committed
+    // (re-printing, re-downloading, or the person typed their own number
+    // in manually) reuse it as-is instead of allocating another one.
+    const numberToUse = numberCommitted ? invoiceNumber : commitDocNumber(docType);
+    if (!numberCommitted) {
+      setInvoiceNumber(numberToUse);
+      setNumberCommitted(true);
+    }
     const entry = {
       id: uid(),
       docType,
-      invoiceNumber,
+      invoiceNumber: numberToUse,
       date,
       dueDate,
       buyerName,
@@ -319,9 +362,10 @@ export default function App() {
       lang,
       savedAt: new Date().toISOString(),
     };
-    const nextHistory = [entry, ...history.filter((h) => h.invoiceNumber !== invoiceNumber)].slice(0, 200);
+    const nextHistory = [entry, ...history.filter((h) => h.invoiceNumber !== numberToUse)].slice(0, 200);
     setHistory(nextHistory);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory));
+    saveJSON(HISTORY_KEY, nextHistory);
+    return numberToUse;
   }
 
   function handlePrint() {
@@ -329,22 +373,35 @@ export default function App() {
     window.print();
   }
 
+  // The PDF export uses html2canvas to snapshot the live on-screen DOM,
+  // which normally sits capped at 640px wide for on-screen editing — unlike
+  // the browser's native Print dialog, it does NOT apply the app's
+  // `@media print` rules, so without intervention the exported PDF's header
+  // wraps text differently than what Print produces. Temporarily widen the
+  // sheet to the same effective width the print stylesheet uses, snapshot,
+  // then always restore it afterwards (even if export fails).
   function handleDownloadPdf() {
-    saveToHistory();
+    const committedNumber = saveToHistory();
     const element = document.getElementById('invoice-sheet');
     const opt = {
       margin: 10,
-      filename: `${invoiceNumber}.pdf`,
+      filename: `${committedNumber}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     };
-    html2pdf().set(opt).from(element).save();
+    element.classList.add('pdf-export-width');
+    const restore = () => element.classList.remove('pdf-export-width');
+    html2pdf().set(opt).from(element).save().then(restore, restore);
   }
 
   function loadFromHistory(entry) {
     setDocType(entry.docType || 'invoice');
     setInvoiceNumber(entry.invoiceNumber);
+    // This number already exists (it came from a saved entry) — mark it
+    // committed so a later save/print/export reuses it instead of trying
+    // to allocate a brand-new one.
+    setNumberCommitted(true);
     setDate(entry.date);
     setDueDate(entry.dueDate || '');
     setBuyerName(entry.buyerName || '');
@@ -375,7 +432,7 @@ export default function App() {
     if (!window.confirm(t.confirmDeleteHistory || 'Delete this history item?')) return;
     const next = history.filter((h) => h.id !== id);
     setHistory(next);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+    saveJSON(HISTORY_KEY, next);
   }
 
   const agencyDisplayName = lang === 'ar' ? agency.nameAr || agency.nameEn : agency.nameEn || agency.nameAr;
@@ -469,7 +526,17 @@ export default function App() {
           <div className="field-grid two">
             <label className="field">
               <span>{docType === 'quotation' ? t.quotationNumber || 'Quotation No.' : t.invoiceNumber || 'Invoice No.'}</span>
-              <input dir="ltr" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
+              <input
+                dir="ltr"
+                value={invoiceNumber}
+                onChange={(e) => {
+                  setInvoiceNumber(e.target.value);
+                  // The person is now choosing their own number — stop
+                  // treating it as a preview so saving won't overwrite it
+                  // with an auto-allocated one.
+                  setNumberCommitted(true);
+                }}
+              />
             </label>
             <label className="field">
               <span>{t.date || 'Date'}</span>
@@ -960,7 +1027,6 @@ export default function App() {
           onCancel={() => setSettingsOpen(false)}
           onSave={saveAgency}
           onAutosave={persistAgency}
-          onLogoFile={handleLogoFile}
           fileInputRef={fileInputRef}
         />
       )}

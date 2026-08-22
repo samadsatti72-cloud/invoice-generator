@@ -303,6 +303,16 @@
   box-shadow: 0 1px 3px rgba(31, 42, 36, 0.06), 0 12px 32px rgba(31, 42, 36, 0.06);
 }
 
+/* Applied only for the instant html2canvas snapshots the sheet for PDF
+   export (see handleDownloadPdf). html2canvas captures the live on-screen
+   DOM, not the browser's @media print layout, so without this the exported
+   PDF wraps text differently than what "Print" produces at full page
+   width. Matches the ~718px usable width of an A4 page at 96dpi minus the
+   10mm margin used in the export options. */
+.invoice-sheet.pdf-export-width {
+  max-width: 720px;
+}
+
 /* ---------- Centered Larger Logo Header ----------
    Flexbox rather than Grid: flexbox's RTL row-reversal and cross-axis
    centering behave far more predictably across browsers and inside the
