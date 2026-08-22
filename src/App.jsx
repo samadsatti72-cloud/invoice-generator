@@ -2,15 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import html2pdf from 'html2pdf.js';
 import { LABELS } from './labels';
+import { commitNext as commitDocNumber, peekNext as peekDocNumber } from './counter';
+import { getLogo, loadJSON, removeLogo, saveJSON, setLogo, setOnSaveError } from './storage';
 import { generateZatcaQrDataUrl } from './zatca';
 import './App.css';
 
 const SETTINGS_KEY = 'invoiceapp.agencySettings';
-const COUNTER_KEY = 'invoiceapp.counter';
-const QUOTE_COUNTER_KEY = 'invoiceapp.quoteCounter';
 const HISTORY_KEY = 'invoiceapp.history';
 const LANG_KEY = 'invoiceapp.language';
 const ORGANIZATIONS_KEY = 'invoiceapp.organizations';
+const DEFAULT_LOGO_KEY = 'logo-v1-default';
 
 const emptyAgency = {
   nameEn: '',
@@ -21,8 +22,31 @@ const emptyAgency = {
   crNumber: '',
   phone: '',
   email: '',
-  logo: '',
+  logoKey: DEFAULT_LOGO_KEY,
 };
+
+function normalizeAgency(next) {
+  return {
+    nameEn: next?.nameEn || '',
+    nameAr: next?.nameAr || '',
+    addressEn: next?.addressEn || '',
+    addressAr: next?.addressAr || '',
+    vatNumber: next?.vatNumber || '',
+    crNumber: next?.crNumber || '',
+    phone: next?.phone || '',
+    email: next?.email || '',
+    logoKey: next?.logoKey || DEFAULT_LOGO_KEY,
+  };
+}
+
+function readInitialAgency() {
+  const saved = loadJSON(SETTINGS_KEY, null);
+  return {
+    hasSavedSettings: Boolean(saved),
+    legacyLogo: typeof saved?.logo === 'string' ? saved.logo : '',
+    agency: normalizeAgency(saved || emptyAgency),
+  };
+}
 
 function uid() {
   return Math.random().toString(36).slice(2, 10);
@@ -36,50 +60,6 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function loadJSON(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-// localStorage.setItem throws in Safari private browsing, and can throw
-// once quota is exceeded — every save/print/export path relies on it
-// succeeding, so a bare call risks crashing those actions. Swallow and
-// report instead of letting it bubble up as an uncaught exception.
-function saveJSON(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch (err) {
-    console.error(`Could not save ${key} to local storage`, err);
-    return false;
-  }
-}
-
-// Invoice/quotation numbers must stay gapless for tax-compliance reasons —
-// so the counter is only ever incremented at the moment a document is
-// actually saved (see commitDocNumber), never just for having been
-// displayed. peekDocNumber previews what the *next* number would be
-// without consuming it, so opening the app or switching tabs doesn't burn
-// numbers that were never used.
-function peekDocNumber(type) {
-  const key = type === 'quotation' ? QUOTE_COUNTER_KEY : COUNTER_KEY;
-  const prefix = type === 'quotation' ? 'QUO' : 'INV';
-  const n = loadJSON(key, 0) + 1;
-  return `${prefix}-${String(n).padStart(4, '0')}`;
-}
-
-function commitDocNumber(type) {
-  const key = type === 'quotation' ? QUOTE_COUNTER_KEY : COUNTER_KEY;
-  const prefix = type === 'quotation' ? 'QUO' : 'INV';
-  const n = loadJSON(key, 0) + 1;
-  saveJSON(key, n);
-  return `${prefix}-${String(n).padStart(4, '0')}`;
-}
-
 function formatMoney(n) {
   return (Number.isFinite(n) ? n : 0).toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -88,14 +68,19 @@ function formatMoney(n) {
 }
 
 export default function App() {
+  const [initialAgencyData] = useState(() => readInitialAgency());
+  const { agency: initialAgency, hasSavedSettings, legacyLogo } = initialAgencyData;
+
   const [lang, setLang] = useState(() => loadJSON(LANG_KEY, 'en'));
   const t = LABELS[lang] || {};
 
-  const [agency, setAgency] = useState(() => loadJSON(SETTINGS_KEY, emptyAgency));
-  const [settingsOpen, setSettingsOpen] = useState(() => !loadJSON(SETTINGS_KEY, null));
+  const [agency, setAgency] = useState(initialAgency);
+  const [logoUrl, setLogoUrl] = useState('');
+  const [settingsOpen, setSettingsOpen] = useState(() => !hasSavedSettings);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState(() => loadJSON(HISTORY_KEY, []));
   const [savedOrgs, setSavedOrgs] = useState(() => loadJSON(ORGANIZATIONS_KEY, {}));
+  const [saveError, setSaveError] = useState('');
 
   const [invoiceNumber, setInvoiceNumber] = useState(() => peekDocNumber('invoice'));
   // Tracks whether `invoiceNumber` has been committed to the counter (or is
@@ -127,6 +112,36 @@ export default function App() {
   const [langFading, setLangFading] = useState(false);
 
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setOnSaveError((payload) => {
+      setSaveError(payload?.message || 'Could not save local data.');
+    });
+    return () => setOnSaveError(null);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    getLogo(agency.logoKey).then((storedLogo) => {
+      if (!cancelled) setLogoUrl(storedLogo || '');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [agency.logoKey]);
+
+  useEffect(() => {
+    if (!legacyLogo) return;
+    let cancelled = false;
+    void setLogo(legacyLogo, initialAgency.logoKey).then(() => {
+      if (cancelled) return;
+      setLogoUrl(legacyLogo);
+      saveJSON(SETTINGS_KEY, initialAgency);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialAgency, legacyLogo]);
 
   useEffect(() => {
     document.documentElement.dir = t.dir || 'ltr';
@@ -260,8 +275,9 @@ export default function App() {
   }
 
   function persistAgency(next) {
-    setAgency(next);
-    saveJSON(SETTINGS_KEY, next);
+    const normalized = normalizeAgency(next);
+    setAgency(normalized);
+    saveJSON(SETTINGS_KEY, normalized);
   }
 
   function saveAgency(next) {
@@ -441,6 +457,7 @@ export default function App() {
 
   return (
     <div className={`shell${langFading ? ' lang-fading' : ''}`} dir={t.dir || 'ltr'}>
+      {saveError && <Alert message={saveError} onDismiss={() => setSaveError('')} />}
       <header className="topbar no-print">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
@@ -837,8 +854,8 @@ export default function App() {
               </div>
 
               <div className="header-col logo-center">
-                {agency.logo ? (
-                  <img className="seller-logo" src={agency.logo} alt={agencyDisplayName} />
+                {logoUrl ? (
+                  <img className="seller-logo" src={logoUrl} alt={agencyDisplayName} />
                 ) : (
                   <div className="seller-logo placeholder">{(agencyDisplayName || 'A')[0]}</div>
                 )}
@@ -1027,6 +1044,8 @@ export default function App() {
           onCancel={() => setSettingsOpen(false)}
           onSave={saveAgency}
           onAutosave={persistAgency}
+          logoUrl={logoUrl}
+          onLogoChange={setLogoUrl}
           fileInputRef={fileInputRef}
         />
       )}
@@ -1044,7 +1063,18 @@ export default function App() {
   );
 }
 
-function SettingsModal({ t, agency, onCancel, onSave, onAutosave, fileInputRef }) {
+function Alert({ message, onDismiss }) {
+  return (
+    <div className="app-alert no-print" role="alert">
+      <span>{message}</span>
+      <button type="button" className="icon-btn" onClick={onDismiss} aria-label="Dismiss save error">
+        ×
+      </button>
+    </div>
+  );
+}
+
+function SettingsModal({ t, agency, onCancel, onSave, onAutosave, logoUrl, onLogoChange, fileInputRef }) {
   const [form, setForm] = useState(agency);
 
   // Autosave as the person types, debounced. This is the fix for
@@ -1070,8 +1100,8 @@ function SettingsModal({ t, agency, onCancel, onSave, onAutosave, fileInputRef }
         <p className="modal-body-text">{t.setupBody || 'Set up your default business details:'}</p>
 
         <div className="logo-uploader">
-          {form.logo ? (
-            <img src={form.logo} alt="logo" className="logo-preview" />
+          {logoUrl ? (
+            <img src={logoUrl} alt="logo" className="logo-preview" />
           ) : (
             <div className="logo-preview placeholder">{t.logo || 'Logo'}</div>
           )}
@@ -1079,8 +1109,15 @@ function SettingsModal({ t, agency, onCancel, onSave, onAutosave, fileInputRef }
             <button type="button" className="btn subtle" onClick={() => fileInputRef.current?.click()}>
               {t.uploadLogo || 'Upload Logo'}
             </button>
-            {form.logo && (
-              <button type="button" className="btn ghost" onClick={() => set('logo', '')}>
+            {logoUrl && (
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => {
+                  void removeLogo(form.logoKey || DEFAULT_LOGO_KEY);
+                  onLogoChange?.('');
+                }}
+              >
                 {t.removeLogo || 'Remove Logo'}
               </button>
             )}
@@ -1093,7 +1130,12 @@ function SettingsModal({ t, agency, onCancel, onSave, onAutosave, fileInputRef }
                 const file = e.target.files?.[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = () => set('logo', reader.result);
+                reader.onload = () => {
+                  const nextLogo = String(reader.result || '');
+                  void setLogo(nextLogo, form.logoKey || DEFAULT_LOGO_KEY);
+                  onLogoChange?.(nextLogo);
+                  set('logoKey', form.logoKey || DEFAULT_LOGO_KEY);
+                };
                 reader.readAsDataURL(file);
               }}
             />

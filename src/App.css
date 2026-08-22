@@ -9,6 +9,25 @@
   flex-direction: column;
 }
 
+.app-alert {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f4c36a;
+  background: #fff2d4;
+  color: #6d4500;
+  font-size: 0.86rem;
+}
+
+.app-alert .icon-btn {
+  color: inherit;
+}
+
 .topbar {
   position: sticky;
   top: 0;
