@@ -373,6 +373,24 @@
   margin-top: 3px;
 }
 
+/* Stacked seller meta (VAT / C.R. / Phone), each on its own tight line,
+   matching the letterhead reference: no extra gap between rows. */
+.seller-meta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 3px;
+}
+.seller-meta-line {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.15;
+  color: var(--ink-soft);
+}
+.seller-meta-line + .seller-meta-line {
+  margin-top: 1px;
+}
+
 .header-col.doc-block {
   flex: 1 1 0;
   min-width: 0;
@@ -398,12 +416,18 @@
   margin-top: 2px;
 }
 
-/* RTL Adjustments for Header Columns */
+/* RTL Adjustments for Header Columns.
+   In RTL, the flex row reverses so seller-info sits on the right and
+   doc-block sits on the left — but "start"/"end" logical values still
+   resolve relative to text direction (start = right in RTL), which forced
+   doc-block's own text to hug the right side of its box even though the
+   box itself was on the left. Use physical left/right so each column's
+   text is flush to the edge it visually occupies. */
 [dir="rtl"] .header-col.seller-info {
   text-align: right;
 }
 [dir="rtl"] .header-col.doc-block {
-  text-align: start;
+  text-align: left;
 }
 
 .ledger-rule {
@@ -943,6 +967,7 @@
 [dir='rtl'] .bill-to-meta-group,
 [dir='rtl'] .seller-meta,
 [dir='rtl'] .seller-footer-info,
+[dir='rtl'] .seller-meta-line,
 [dir='rtl'] .notes-text,
 [dir='rtl'] .installment-table td,
 [dir='rtl'] .installment-preview-list li,
@@ -953,7 +978,8 @@
   font-weight: 500;
 }
 [dir='rtl'] .bill-to-meta-group,
-[dir='rtl'] .seller-meta {
+[dir='rtl'] .seller-meta,
+[dir='rtl'] .seller-meta-line {
   font-weight: 700;
 }
 
