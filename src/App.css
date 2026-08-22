@@ -303,19 +303,26 @@
   box-shadow: 0 1px 3px rgba(31, 42, 36, 0.06), 0 12px 32px rgba(31, 42, 36, 0.06);
 }
 
-/* ---------- Centered Larger Logo Header Grid ---------- */
+/* ---------- Centered Larger Logo Header ----------
+   Flexbox rather than Grid: flexbox's RTL row-reversal and cross-axis
+   centering behave far more predictably across browsers and inside the
+   PDF export engine (html2canvas) than CSS Grid's does, which was the
+   root cause of the header's recurring alignment glitches. */
 .sheet-header.centered-logo-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
 }
 
 .header-col.seller-info {
+  flex: 1 1 0;
+  min-width: 0;
   text-align: start;
 }
 
 .header-col.logo-center {
+  flex: 0 0 auto;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -367,6 +374,8 @@
 }
 
 .header-col.doc-block {
+  flex: 1 1 0;
+  min-width: 0;
   text-align: end;
 }
 .doc-title {
