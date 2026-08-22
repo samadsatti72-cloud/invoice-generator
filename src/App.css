@@ -347,6 +347,7 @@
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.15rem;
+  line-height: 1.25;
 }
 .seller-address {
   color: var(--ink-soft);
@@ -360,8 +361,9 @@
   flex-wrap: wrap;
   font-family: var(--font-mono);
   font-size: 0.72rem;
+  line-height: 1.3;
   color: var(--ink-soft);
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 .header-col.doc-block {
@@ -389,7 +391,7 @@
 
 /* RTL Adjustments for Header Columns */
 [dir="rtl"] .header-col.seller-info {
-  text-align: end;
+  text-align: right;
 }
 [dir="rtl"] .header-col.doc-block {
   text-align: start;
@@ -645,6 +647,25 @@
   font-size: 0.82rem;
   color: var(--ink-soft);
   white-space: pre-wrap;
+}
+
+.seller-footer-info {
+  margin-top: 22px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+  text-align: start;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+[dir='rtl'] .seller-footer-info {
+  text-align: right;
+}
+.seller-footer-address {
+  max-width: 42ch;
+}
+.seller-footer-email {
+  margin-top: 2px;
 }
 
 .sheet-footer {
@@ -912,6 +933,7 @@
 [dir='rtl'] .bill-to-meta,
 [dir='rtl'] .bill-to-meta-group,
 [dir='rtl'] .seller-meta,
+[dir='rtl'] .seller-footer-info,
 [dir='rtl'] .notes-text,
 [dir='rtl'] .installment-table td,
 [dir='rtl'] .installment-preview-list li,

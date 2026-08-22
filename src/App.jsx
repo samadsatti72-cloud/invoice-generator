@@ -750,7 +750,6 @@ export default function App() {
             <div className="sheet-header centered-logo-header">
               <div className="header-col seller-info">
                 <div className="seller-name">{agencyDisplayName || '—'}</div>
-                {agencyDisplayAddress && <div className="seller-address">{agencyDisplayAddress}</div>}
                 <div className="seller-meta">
                   {agency.vatNumber && (
                     <span>
@@ -763,18 +762,13 @@ export default function App() {
                     </span>
                   )}
                 </div>
-                <div className="seller-meta">
-                  {agency.phone && (
+                {agency.phone && (
+                  <div className="seller-meta">
                     <span>
                       {t.phone || 'Phone'}: <bdi dir="ltr">{agency.phone}</bdi>
                     </span>
-                  )}
-                  {agency.email && (
-                    <span>
-                      {t.email || 'Email'}: <bdi dir="ltr">{agency.email}</bdi>
-                    </span>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               <div className="header-col logo-center">
@@ -935,6 +929,17 @@ export default function App() {
               <div className="notes-block">
                 <div className="notes-label">{t.notes || 'Notes'}</div>
                 <div className="notes-text">{notes}</div>
+              </div>
+            )}
+
+            {(agencyDisplayAddress || agency.email) && (
+              <div className="seller-footer-info">
+                {agencyDisplayAddress && <div className="seller-footer-address">{agencyDisplayAddress}</div>}
+                {agency.email && (
+                  <div className="seller-footer-email">
+                    {t.email || 'Email'}: <bdi dir="ltr">{agency.email}</bdi>
+                  </div>
+                )}
               </div>
             )}
 
