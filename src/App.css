@@ -1,0 +1,1187 @@
+/* ---------- layout shell ---------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  display: inline-flex;
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ---------- buttons ---------- */
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+  /* Guarantees no hover/active color shift can ever apply, regardless of
+     selector specificity ordering elsewhere in this file. */
+  pointer-events: none;
+}
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn.primary:hover {
+  background: var(--accent-dark);
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.btn.ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+.btn.subtle {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+.btn.subtle:hover {
+  background: #d5e8e0;
+}
+
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  background: transparent;
+  cursor: pointer;
+}
+.icon-btn.danger {
+  color: var(--danger);
+}
+.icon-btn.danger:hover {
+  background: var(--danger-soft);
+}
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ---------- mobile tabs ---------- */
+.mobile-tabs {
+  display: none;
+}
+
+/* ---------- workspace ---------- */
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 480px) 1fr;
+  gap: 28px;
+  padding: 28px;
+  max-width: 1320px;
+  width: 100%;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.editor {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(31, 42, 36, 0.06), 0 12px 32px rgba(31, 42, 36, 0.06);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 18px;
+}
+
+.section-subtitle {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 22px 0 10px;
+  color: var(--accent-dark);
+}
+
+/* ---------- document type toggle ---------- */
+.doctype-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.doctype-toggle {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--accent-soft);
+  border-radius: 999px;
+  gap: 2px;
+}
+.doctype-toggle button {
+  border: none;
+  background: transparent;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent-dark);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.doctype-toggle button.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(15, 107, 92, 0.35);
+}
+.doctype-toggle button:not(.active):hover {
+  background: #d5e8e0;
+}
+
+.field-grid.two {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+.field span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+.field .hint {
+  text-transform: none;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.field input,
+.select-input,
+.notes-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 0.92rem;
+  color: var(--ink);
+  background: var(--paper);
+}
+.field input:focus,
+.select-input:focus,
+.notes-input:focus {
+  border-color: var(--accent);
+  background: #fff;
+  outline: none;
+}
+
+/* ---------- items editor ---------- */
+.items-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.item-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px 76px 70px 28px;
+  gap: 8px;
+  align-items: center;
+}
+.item-row-head span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+.item-desc,
+.item-qty,
+.item-price {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 9px;
+  font-size: 0.88rem;
+  background: var(--paper);
+}
+.item-desc:focus,
+.item-qty:focus,
+.item-price:focus {
+  border-color: var(--accent);
+  background: #fff;
+  outline: none;
+}
+.item-amount {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-align: end;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.add-line {
+  margin-top: 12px;
+}
+
+.notes-input {
+  width: 100%;
+  resize: vertical;
+}
+
+/* ---------- preview pane ---------- */
+.preview-pane {
+  display: flex;
+  justify-content: flex-start;
+  position: sticky;
+  top: 90px;
+}
+
+.invoice-sheet {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  width: 100%;
+  max-width: 640px;
+  padding: 40px 36px;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(31, 42, 36, 0.06), 0 12px 32px rgba(31, 42, 36, 0.06);
+}
+
+/* Applied only for the instant html2canvas snapshots the sheet for PDF
+   export (see handleDownloadPdf). html2canvas captures the live on-screen
+   DOM, not the browser's @media print layout, so without this the exported
+   PDF wraps text differently than what "Print" produces at full page
+   width. Matches the ~718px usable width of an A4 page at 96dpi minus the
+   10mm margin used in the export options. */
+.invoice-sheet.pdf-export-width {
+  max-width: 720px;
+}
+
+/* ---------- Centered Larger Logo Header ----------
+   Flexbox rather than Grid: flexbox's RTL row-reversal and cross-axis
+   centering behave far more predictably across browsers and inside the
+   PDF export engine (html2canvas) than CSS Grid's does, which was the
+   root cause of the header's recurring alignment glitches. */
+.sheet-header.centered-logo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-col.seller-info {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: start;
+}
+
+.header-col.logo-center {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-col.logo-center .seller-logo {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.header-col.logo-center .seller-logo.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2.5rem;
+  width: 110px;
+  height: 110px;
+  border-radius: 12px;
+}
+
+.seller-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.25;
+}
+.seller-address {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  margin-top: 2px;
+  max-width: 26ch;
+}
+.seller-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--ink-soft);
+  margin-top: 3px;
+}
+
+/* Stacked seller meta (VAT / C.R. / Phone), each on its own tight line,
+   matching the letterhead reference: no extra gap between rows. */
+.seller-meta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 3px;
+}
+.seller-meta-line {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.15;
+  color: var(--ink-soft);
+}
+.seller-meta-line + .seller-meta-line {
+  margin-top: 1px;
+}
+
+.header-col.doc-block {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: end;
+}
+.doc-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-size: 0.95rem;
+}
+.doc-number {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-top: 4px;
+}
+.doc-date {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+/* RTL Adjustments for Header Columns.
+   In RTL, the flex row reverses so seller-info sits on the right and
+   doc-block sits on the left — but "start"/"end" logical values still
+   resolve relative to text direction (start = right in RTL), which forced
+   doc-block's own text to hug the right side of its box even though the
+   box itself was on the left. Use physical left/right so each column's
+   text is flush to the edge it visually occupies. */
+[dir="rtl"] .header-col.seller-info {
+  text-align: right;
+}
+[dir="rtl"] .header-col.doc-block {
+  text-align: left;
+}
+
+.ledger-rule {
+  height: 1px;
+  margin: 22px 0;
+  background: repeating-linear-gradient(
+    to right,
+    var(--line) 0,
+    var(--line) 6px,
+    transparent 6px,
+    transparent 11px
+  );
+}
+
+.bill-to {
+  margin-bottom: 20px;
+}
+.bill-to-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.bill-to-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-top: 3px;
+}
+.bill-to-meta {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+.bill-to-meta-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  margin-top: 3px;
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  border: 1px solid var(--accent-dark);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.items-table th {
+  text-align: start;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: var(--accent-dark);
+  padding: 9px 12px;
+  border-inline-end: 1px solid rgba(255, 255, 255, 0.18);
+}
+.items-table th:last-child {
+  border-inline-end: none;
+}
+.items-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  border-inline-end: 1px solid var(--line);
+  font-size: 0.87rem;
+}
+.items-table td:last-child {
+  border-inline-end: none;
+}
+.items-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.items-table tbody tr:nth-child(even) {
+  background: var(--paper);
+}
+.items-table .col-num {
+  text-align: end;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.items-table th.col-num {
+  text-align: end;
+  font-family: var(--font-display);
+}
+.items-table .col-desc {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+}
+
+.totals-block {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.totals-inner {
+  min-width: 250px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+.totals-row .totals-amount {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+.totals-row.total {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 2px solid var(--accent-dark);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent-dark);
+}
+.totals-row.total .totals-amount {
+  font-family: var(--font-mono);
+}
+
+.totals-row.split-row {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  border-top: 1px dashed var(--line);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+.totals-row.split-row.highlight {
+  font-weight: 600;
+  color: var(--accent-dark);
+}
+.totals-row.discount-row {
+  color: #b3492f;
+}
+.totals-row.discount-row .totals-amount {
+  color: #b3492f;
+}
+
+/* ---------- installment / yearly payment plan ---------- */
+.installment-plan {
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.installment-preview {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+.installment-preview-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.installment-preview-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.installment-preview-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 0.78rem;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+.installment-preview-list li:last-child {
+  border-bottom: none;
+}
+.installment-preview-list li span:first-child {
+  color: var(--ink-soft);
+  min-width: 28px;
+}
+
+.installment-schedule-block {
+  margin: 16px 0;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+.installment-schedule-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.installment-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.installment-table th {
+  text-align: start;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.installment-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+.installment-table th:not(:first-child),
+.installment-table td:not(:first-child) {
+  text-align: end;
+}
+
+.notes-block {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+.notes-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+.notes-text {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+}
+
+.seller-footer-info {
+  margin-top: 22px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+  text-align: start;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+[dir='rtl'] .seller-footer-info {
+  text-align: right;
+}
+.seller-footer-address {
+  max-width: 42ch;
+}
+.seller-footer-email {
+  margin-top: 2px;
+}
+
+.sheet-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+.qr-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.62rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* ---------- modals ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 42, 36, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+.modal {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 28px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.modal h2 {
+  font-family: var(--font-display);
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+}
+.modal-body-text {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  margin: 0 0 18px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.modal-actions-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.modal-actions-top h2 {
+  margin: 0;
+}
+
+.logo-uploader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.logo-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: contain;
+  border: 1px solid var(--line);
+}
+.logo-preview.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 4px;
+}
+.logo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- history ---------- */
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.history-number {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.doc-badge {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.doc-badge.invoice {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+.doc-badge.quotation {
+  background: #fbe9d9;
+  color: #9a5b1f;
+}
+.history-meta {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+.history-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 16px;
+  }
+  .mobile-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px 0;
+  }
+  .mobile-tabs button {
+    flex: 1;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .mobile-tabs button.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .mobile-hidden {
+    display: none;
+  }
+  .preview-pane {
+    position: static;
+  }
+  .invoice-sheet {
+    padding: 24px 18px;
+  }
+  .topbar {
+    padding: 12px 16px;
+  }
+  .topbar-actions {
+    gap: 6px;
+  }
+  .btn {
+    padding: 8px 13px;
+    font-size: 0.78rem;
+  }
+  .modal {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .field-grid.two {
+    grid-template-columns: 1fr;
+  }
+  .item-row {
+    grid-template-columns: minmax(100px, 1fr) 40px 60px 55px 24px;
+    gap: 5px;
+  }
+  .sheet-header.centered-logo-header {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .header-col.seller-info,
+  .header-col.doc-block {
+    text-align: center;
+  }
+  [dir="rtl"] .header-col.seller-info,
+  [dir="rtl"] .header-col.doc-block {
+    text-align: center;
+  }
+}
+
+/* ---------- Arabic typography fixes ---------- */
+/*
+ * letter-spacing and text-transform:uppercase are Latin-script conventions.
+ * Arabic is a cursive script whose letters must stay connected to their
+ * neighbours to be legible; adding letter-spacing breaks those connections
+ * and text-transform:uppercase has no defined effect on it. Everywhere the
+ * English UI uses these for stylistic emphasis, undo them for RTL so Arabic
+ * renders as properly joined, natural text.
+ */
+[dir='rtl'] .field span,
+[dir='rtl'] .item-row-head span,
+[dir='rtl'] .doc-title,
+[dir='rtl'] .bill-to-label,
+[dir='rtl'] .items-table th,
+[dir='rtl'] .notes-label,
+[dir='rtl'] .doc-badge,
+[dir='rtl'] .installment-preview-title,
+[dir='rtl'] .installment-schedule-title {
+  letter-spacing: normal;
+  text-transform: none;
+}
+[dir='rtl'] .brand-name {
+  letter-spacing: normal;
+  font-weight: 800;
+}
+
+/* Cairo — bold display headings and section titles. */
+[dir='rtl'] .section-title,
+[dir='rtl'] .section-subtitle,
+[dir='rtl'] .doc-title,
+[dir='rtl'] .seller-name,
+[dir='rtl'] .bill-to-name,
+[dir='rtl'] .items-table th,
+[dir='rtl'] .totals-row.total,
+[dir='rtl'] .modal h2 {
+  font-weight: 800;
+}
+
+/* Tajawal — dense, data-heavy content: item table rows, addresses, and
+   contact-meta rows. Its wide counters keep tightly packed Arabic text
+   (line items, addresses, phone/email/VAT strings) readable at small
+   sizes, which is exactly where invoices get crowded. */
+[dir='rtl'] .items-table td.col-desc,
+[dir='rtl'] .seller-address,
+[dir='rtl'] .bill-to-meta,
+[dir='rtl'] .bill-to-meta-group,
+[dir='rtl'] .seller-meta,
+[dir='rtl'] .seller-footer-info,
+[dir='rtl'] .seller-meta-line,
+[dir='rtl'] .notes-text,
+[dir='rtl'] .installment-table td,
+[dir='rtl'] .installment-preview-list li,
+[dir='rtl'] .history-meta {
+  font-family: var(--font-arabic-dense);
+}
+[dir='rtl'] .items-table td.col-desc {
+  font-weight: 500;
+}
+[dir='rtl'] .bill-to-meta-group,
+[dir='rtl'] .seller-meta,
+[dir='rtl'] .seller-meta-line {
+  font-weight: 700;
+}
+
+/* Readex Pro (the default --font-body in RTL) already covers form labels,
+   buttons, and general UI copy cleanly — just pin labels to a confidently
+   bold cut so nothing reads thin next to the Cairo headings. */
+[dir='rtl'] .field span,
+[dir='rtl'] .item-row-head span,
+[dir='rtl'] .bill-to-label,
+[dir='rtl'] .notes-label,
+[dir='rtl'] .btn {
+  font-weight: 700;
+}
+
+/* Fields that are intentionally kept LTR inside an RTL form (invoice
+   numbers, dates, phone numbers, VAT/CR numbers, monetary inputs) should
+   still sit at the "end" of the field visually, matching where a reader's
+   eye naturally lands in a right-to-left layout. */
+[dir='rtl'] .field input[dir='ltr'],
+[dir='rtl'] .item-qty,
+[dir='rtl'] .item-price {
+  text-align: right;
+}
+
+/* Language toggle button */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.lang-toggle-icon {
+  font-size: 0.95em;
+  line-height: 1;
+}
+
+/* ---------- print ---------- */
+@media print {
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  body,
+  .shell,
+  .workspace {
+    background: #fff !important;
+  }
+
+  .workspace {
+    display: block;
+    padding: 0;
+    margin: 0;
+    max-width: none;
+  }
+
+  .preview-pane {
+    display: block;
+    position: static;
+    padding: 0;
+  }
+
+  .mobile-hidden {
+    display: block !important;
+  }
+
+  .invoice-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    max-width: 100%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Force table headers and background colors to show in print */
+  .items-table th {
+    background-color: var(--accent-dark) !important;
+    color: #fff !important;
+  }
+
+  .totals-inner {
+    background-color: var(--accent-soft) !important;
+    border: 1px solid var(--accent) !important;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}
+/* ---------- License activation & subscription status ---------- */
+.activation-modal {
+  max-width: 420px;
+  text-align: center;
+}
+.activation-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: start;
+}
+.activation-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.license-key-input {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.field-error {
+  color: #b3261e;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.license-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #fff4e5;
+  border-bottom: 1px solid #f0c987;
+  color: #6b4a12;
+  padding: 10px 24px;
+  font-size: 0.85rem;
+}
+.license-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.license-banner-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.license-banner-form .license-key-input {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+
+/* ---------- Backup & export ---------- */
+.backup-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.backup-section h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
+.backup-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.backup-status {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin: 10px 0 0;
+}
+.backup-status.success {
+  color: var(--accent-dark);
+}
+.backup-note {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  margin: 10px 0 0;
+  line-height: 1.5;
+}

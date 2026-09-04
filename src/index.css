@@ -1,0 +1,103 @@
+:root {
+  --paper: #f6f2e9;
+  --surface: #ffffff;
+  --ink: #1f2a24;
+  --ink-soft: #5b665f;
+  --accent: #0f6b5c;
+  --accent-dark: #0a4d43;
+  --accent-soft: #e4efea;
+  --line: #d8d2c4;
+  --danger: #b3492d;
+  --danger-soft: #f3e3dd;
+  --radius: 10px;
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-arabic: 'Readex Pro', sans-serif;
+  --font-arabic-display: 'Cairo', sans-serif;
+  --font-arabic-dense: 'Tajawal', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+/*
+ * When the document flips to RTL, redefine the two font variables at the
+ * root. Because CSS custom properties inherit through the cascade, every
+ * rule anywhere in the app that already reads var(--font-display) or
+ * var(--font-body) automatically renders in a proper, legible Arabic
+ * typeface instead of silently falling back to the browser's default font
+ * (which is what happens when Latin-only webfonts like Fraunces/Inter are
+ * asked to render Arabic glyphs). Numbers stay on --font-mono either way,
+ * since digits render fine in a monospace face regardless of language.
+ */
+html[dir='rtl'] {
+  --font-display: var(--font-arabic-display);
+  --font-body: var(--font-arabic);
+}
+
+html[dir='rtl'] body {
+  font-weight: 500;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- smooth English \u2194 Arabic transition ---------- */
+
+/* Preferred path: native View Transitions API. The browser automatically
+   snapshots the page before/after the language state change and cross-fades
+   between them; we just tune the timing so the LTR/RTL flip feels gentle
+   rather than instant. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.32s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fallback path for browsers without View Transitions support: a manual
+   opacity/scale cross-fade driven by the `.lang-fading` class. */
+.shell {
+  transition: opacity 0.16s ease, filter 0.16s ease;
+}
+.shell.lang-fading {
+  opacity: 0;
+  filter: blur(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.001s;
+  }
+  .shell {
+    transition: none;
+  }
+}
