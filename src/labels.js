@@ -105,6 +105,34 @@ export const LABELS = {
     docBadgeInvoice: 'Invoice',
     docBadgeQuotation: 'Quotation',
     quotationValiditySection: 'Quotation Validity',
+<<<<<<< HEAD
+
+    // License activation & subscription status
+    activateTitle: 'Activate Invoice Studio',
+    activateBody: 'Enter the license key from your purchase confirmation email to get started.',
+    licenseKeyLabel: 'License key',
+    licenseKeyPh: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
+    activateButton: 'Activate',
+    activating: 'Activating…',
+    activateError: 'Could not activate that key. Double-check it and try again.',
+    activateOffline: "Couldn't reach the license server. Check your internet connection and try again.",
+    licenseExpiredBanner: 'Your subscription has expired. Renew to keep creating new invoices — you can still view, print, and export everything already saved.',
+    licenseGraceBanner: "Couldn't verify your subscription (no internet for a while). Reconnect soon to keep creating new invoices.",
+    licenseDisabledBanner: 'This license key has been disabled. Contact support or activate a different key.',
+    renewNow: 'Renew subscription',
+    enterDifferentKey: 'Enter a different key',
+    lockedTooltip: 'Renew your subscription to create new documents',
+
+    // Backup & export
+    backupSection: 'Backups & Export',
+    exportAllJson: 'Export all (JSON)',
+    exportAllCsv: 'Export all (CSV)',
+    exportSuccess: 'Saved',
+    exportNothingToSave: 'No saved invoices yet to export.',
+    autoBackupNote: 'Every invoice is also backed up automatically to a file on this computer.',
+    autoBackupPath: 'Backup folder',
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
   },
   ar: {
     dir: 'rtl',
@@ -212,5 +240,33 @@ export const LABELS = {
     docBadgeInvoice: 'فاتورة',
     docBadgeQuotation: 'عرض سعر',
     quotationValiditySection: 'صلاحية العرض',
+<<<<<<< HEAD
+
+    // License activation & subscription status
+    activateTitle: 'تفعيل استوديو الفواتير',
+    activateBody: 'أدخل رمز الترخيص من رسالة تأكيد الشراء للبدء.',
+    licenseKeyLabel: 'رمز الترخيص',
+    licenseKeyPh: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
+    activateButton: 'تفعيل',
+    activating: 'جارٍ التفعيل…',
+    activateError: 'تعذّر تفعيل هذا الرمز. تأكد منه وحاول مرة أخرى.',
+    activateOffline: 'تعذّر الوصول إلى خادم التراخيص. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.',
+    licenseExpiredBanner: 'انتهى اشتراكك. جدّده لإنشاء فواتير جديدة — يمكنك الاستمرار في عرض وطباعة وتصدير كل ما تم حفظه مسبقاً.',
+    licenseGraceBanner: 'تعذّر التحقق من اشتراكك (لا يوجد اتصال بالإنترنت منذ فترة). أعد الاتصال قريباً لمتابعة إنشاء فواتير جديدة.',
+    licenseDisabledBanner: 'تم تعطيل رمز الترخيص هذا. تواصل مع الدعم أو فعّل رمزاً آخر.',
+    renewNow: 'تجديد الاشتراك',
+    enterDifferentKey: 'إدخال رمز آخر',
+    lockedTooltip: 'جدّد اشتراكك لإنشاء مستندات جديدة',
+
+    // Backup & export
+    backupSection: 'النسخ الاحتياطي والتصدير',
+    exportAllJson: 'تصدير الكل (JSON)',
+    exportAllCsv: 'تصدير الكل (CSV)',
+    exportSuccess: 'تم الحفظ',
+    exportNothingToSave: 'لا توجد فواتير محفوظة للتصدير بعد.',
+    autoBackupNote: 'يتم أيضاً حفظ نسخة احتياطية من كل فاتورة تلقائياً في ملف على هذا الجهاز.',
+    autoBackupPath: 'مجلد النسخ الاحتياطي',
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
   },
 };

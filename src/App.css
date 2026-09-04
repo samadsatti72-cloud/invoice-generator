@@ -60,6 +60,17 @@
 .btn:active {
   transform: scale(0.97);
 }
+<<<<<<< HEAD
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+  /* Guarantees no hover/active color shift can ever apply, regardless of
+     selector specificity ordering elsewhere in this file. */
+  pointer-events: none;
+}
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
 .btn.primary {
   background: var(--accent);
   color: #fff;
@@ -1086,4 +1097,98 @@
   @page {
     margin: 14mm;
   }
+<<<<<<< HEAD
 }
+/* ---------- License activation & subscription status ---------- */
+.activation-modal {
+  max-width: 420px;
+  text-align: center;
+}
+.activation-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: start;
+}
+.activation-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.license-key-input {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.field-error {
+  color: #b3261e;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.license-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #fff4e5;
+  border-bottom: 1px solid #f0c987;
+  color: #6b4a12;
+  padding: 10px 24px;
+  font-size: 0.85rem;
+}
+.license-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.license-banner-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.license-banner-form .license-key-input {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+
+/* ---------- Backup & export ---------- */
+.backup-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.backup-section h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
+.backup-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.backup-status {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin: 10px 0 0;
+}
+.backup-status.success {
+  color: var(--accent-dark);
+}
+.backup-note {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+=======
+}
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
