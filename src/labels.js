@@ -105,6 +105,7 @@ export const LABELS = {
     docBadgeInvoice: 'Invoice',
     docBadgeQuotation: 'Quotation',
     quotationValiditySection: 'Quotation Validity',
+<<<<<<< HEAD
 
     // License activation & subscription status
     activateTitle: 'Activate Invoice Studio',
@@ -130,6 +131,8 @@ export const LABELS = {
     exportNothingToSave: 'No saved invoices yet to export.',
     autoBackupNote: 'Every invoice is also backed up automatically to a file on this computer.',
     autoBackupPath: 'Backup folder',
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
   },
   ar: {
     dir: 'rtl',
@@ -237,6 +240,7 @@ export const LABELS = {
     docBadgeInvoice: 'فاتورة',
     docBadgeQuotation: 'عرض سعر',
     quotationValiditySection: 'صلاحية العرض',
+<<<<<<< HEAD
 
     // License activation & subscription status
     activateTitle: 'تفعيل استوديو الفواتير',
@@ -262,5 +266,7 @@ export const LABELS = {
     exportNothingToSave: 'لا توجد فواتير محفوظة للتصدير بعد.',
     autoBackupNote: 'يتم أيضاً حفظ نسخة احتياطية من كل فاتورة تلقائياً في ملف على هذا الجهاز.',
     autoBackupPath: 'مجلد النسخ الاحتياطي',
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
   },
 };

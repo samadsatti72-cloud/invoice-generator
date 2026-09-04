@@ -61,4 +61,8 @@ export async function generateZatcaQrDataUrl({ sellerName, vatNumber, isoTimesta
   } catch {
     return null;
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34

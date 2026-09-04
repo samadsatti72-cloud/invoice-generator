@@ -60,6 +60,7 @@
 .btn:active {
   transform: scale(0.97);
 }
+<<<<<<< HEAD
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -68,6 +69,8 @@
      selector specificity ordering elsewhere in this file. */
   pointer-events: none;
 }
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
 .btn.primary {
   background: var(--accent);
   color: #fff;
@@ -1094,6 +1097,7 @@
   @page {
     margin: 14mm;
   }
+<<<<<<< HEAD
 }
 /* ---------- License activation & subscription status ---------- */
 .activation-modal {
@@ -1185,3 +1189,6 @@
   margin: 10px 0 0;
   line-height: 1.5;
 }
+=======
+}
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34

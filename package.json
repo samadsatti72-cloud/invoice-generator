@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
+<<<<<<< HEAD
     "preview": "vite preview",
     "tauri": "tauri"
   },
@@ -16,13 +17,21 @@
     "@tauri-apps/plugin-fs": "^2.5.1",
     "@tauri-apps/plugin-log": "^2.9.0",
     "@tauri-apps/plugin-store": "^2.4.4",
+=======
+    "preview": "vite preview"
+  },
+  "dependencies": {
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
     "html2pdf.js": "^0.14.0",
     "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "@tauri-apps/cli": "^2.11.4",
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",

@@ -3,8 +3,11 @@ import { flushSync } from 'react-dom';
 import html2pdf from 'html2pdf.js';
 import { LABELS } from './labels';
 import { generateZatcaQrDataUrl } from './zatca';
+<<<<<<< HEAD
 import { getLicenseStatus, revalidateLicense, activateLicense } from './license';
 import { exportHistory, autoBackup, getBackupFolderPath } from './backup';
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
 import './App.css';
 
 const SETTINGS_KEY = 'invoiceapp.agencySettings';
@@ -94,7 +97,11 @@ export default function App() {
   const t = LABELS[lang] || {};
 
   const [agency, setAgency] = useState(() => loadJSON(SETTINGS_KEY, emptyAgency));
+<<<<<<< HEAD
   const [settingsOpen, setSettingsOpen] = useState(false);
+=======
+  const [settingsOpen, setSettingsOpen] = useState(() => !loadJSON(SETTINGS_KEY, null));
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState(() => loadJSON(HISTORY_KEY, []));
   const [savedOrgs, setSavedOrgs] = useState(() => loadJSON(ORGANIZATIONS_KEY, {}));
@@ -128,6 +135,7 @@ export default function App() {
   const [mobileView, setMobileView] = useState('edit');
   const [langFading, setLangFading] = useState(false);
 
+<<<<<<< HEAD
   // `checking: true` covers the brief moment before the first status read
   // resolves, so the app doesn't flash a "locked" screen on every launch
   // before we've actually looked at the cached license state.
@@ -183,6 +191,10 @@ export default function App() {
   // the kind of support/trust problem worth avoiding.
   const canCommitNewDocument = !license.locked || numberCommitted;
 
+=======
+  const fileInputRef = useRef(null);
+
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
   useEffect(() => {
     document.documentElement.dir = t.dir || 'ltr';
     document.documentElement.lang = lang;
@@ -340,12 +352,16 @@ export default function App() {
   // and switches on normal payment terms, while keeping every line item,
   // buyer, and note exactly as quoted. This is a deliberate, one-off action
   // (not just navigation), so the number is committed immediately.
+<<<<<<< HEAD
   //
   // Blocked while locked: converting always creates a brand-new committed
   // document, which is exactly the "new usage" a lapsed subscription
   // should hold back — unlike reprinting something that already exists.
   function convertToInvoice() {
     if (license.locked) return;
+=======
+  function convertToInvoice() {
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
     setDocType('invoice');
     setInvoiceNumber(commitDocNumber('invoice'));
     setNumberCommitted(true);
@@ -354,17 +370,25 @@ export default function App() {
 
   // Clones the current document (same type) under a brand-new number, for
   // repeat clients or recurring line items, without retyping everything.
+<<<<<<< HEAD
   // Also a deliberate action, so commit immediately. Same lock rule as
   // convertToInvoice above.
   function duplicateDocument() {
     if (license.locked) return;
+=======
+  // Also a deliberate action, so commit immediately.
+  function duplicateDocument() {
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
     setInvoiceNumber(commitDocNumber(docType));
     setNumberCommitted(true);
     setDate(todayISO());
   }
 
   function startNewInvoice() {
+<<<<<<< HEAD
     if (license.locked) return;
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
     setDocType('invoice');
     setInvoiceNumber(peekDocNumber('invoice'));
     setNumberCommitted(false);
@@ -388,6 +412,7 @@ export default function App() {
   }
 
   function saveToHistory() {
+<<<<<<< HEAD
     // The one real gate: a document that was never committed before (a
     // brand-new invoice/quotation) cannot be committed for the first time
     // while locked. Anything already committed — reprinting, re-downloading,
@@ -395,6 +420,8 @@ export default function App() {
     // lapsed subscription never blocks access to a person's own past
     // records.
     if (!canCommitNewDocument) return null;
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
     rememberOrganization();
     // First time this document is actually being saved/printed/exported —
     // commit its previewed number now so the counter only advances for
@@ -432,6 +459,7 @@ export default function App() {
       lang,
       savedAt: new Date().toISOString(),
     };
+<<<<<<< HEAD
     // The in-app history list is a convenience view, not the sole record —
     // autoBackup() below writes the complete, unfiltered history to disk on
     // every save. This cap only bounds what's kept in localStorage/the
@@ -445,12 +473,21 @@ export default function App() {
     // Best-effort, non-blocking: never let a backup hiccup delay or fail
     // the actual invoice save. autoBackup() no-ops outside the desktop app.
     autoBackup(nextHistory);
+=======
+    const nextHistory = [entry, ...history.filter((h) => h.invoiceNumber !== numberToUse)].slice(0, 200);
+    setHistory(nextHistory);
+    saveJSON(HISTORY_KEY, nextHistory);
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
     return numberToUse;
   }
 
   function handlePrint() {
+<<<<<<< HEAD
     const saved = saveToHistory();
     if (saved === null) return; // locked and this document was never committed — see saveToHistory
+=======
+    saveToHistory();
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
     window.print();
   }
 
@@ -463,7 +500,10 @@ export default function App() {
   // then always restore it afterwards (even if export fails).
   function handleDownloadPdf() {
     const committedNumber = saveToHistory();
+<<<<<<< HEAD
     if (committedNumber === null) return; // locked and this document was never committed
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
     const element = document.getElementById('invoice-sheet');
     const opt = {
       margin: 10,
@@ -549,6 +589,7 @@ export default function App() {
           <button className="btn ghost" onClick={() => setSettingsOpen(true)}>
             {t.settings || 'Settings'}
           </button>
+<<<<<<< HEAD
           <button
             className="btn subtle"
             onClick={startNewInvoice}
@@ -579,15 +620,30 @@ export default function App() {
             disabled={!canCommitNewDocument}
             title={!canCommitNewDocument ? t.lockedTooltip : undefined}
           >
+=======
+          <button className="btn subtle" onClick={startNewInvoice}>
+            {t.newInvoice || 'New Invoice'}
+          </button>
+          <button className="btn ghost" onClick={duplicateDocument}>
+            {t.duplicateDoc || 'Duplicate'}
+          </button>
+          <button className="btn ghost" onClick={handlePrint}>
+            {t.print || 'Print'}
+          </button>
+          <button className="btn primary" onClick={handleDownloadPdf}>
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
             {t.savePdf || 'Save as PDF'}
           </button>
         </div>
       </header>
 
+<<<<<<< HEAD
       {license.activated && license.locked && (
         <LicenseBanner t={t} reason={license.reason} onReactivate={handleActivate} />
       )}
 
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
       <div className="mobile-tabs no-print">
         <button className={mobileView === 'edit' ? 'active' : ''} onClick={() => setMobileView('edit')}>
           {t.editorTitle || 'Edit'}
@@ -623,6 +679,7 @@ export default function App() {
               </button>
             </div>
             {docType === 'quotation' && (
+<<<<<<< HEAD
               <button
                 type="button"
                 className="btn subtle"
@@ -630,6 +687,9 @@ export default function App() {
                 disabled={license.locked}
                 title={license.locked ? t.lockedTooltip : undefined}
               >
+=======
+              <button type="button" className="btn subtle" onClick={convertToInvoice}>
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
                 {t.convertToInvoice || 'Convert to Invoice'}
               </button>
             )}
@@ -1140,7 +1200,10 @@ export default function App() {
           onSave={saveAgency}
           onAutosave={persistAgency}
           fileInputRef={fileInputRef}
+<<<<<<< HEAD
           history={history}
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
         />
       )}
 
@@ -1153,13 +1216,20 @@ export default function App() {
           onDelete={deleteHistoryEntry}
         />
       )}
+<<<<<<< HEAD
 
       {!license.checking && !license.activated && <ActivationScreen t={t} onActivate={handleActivate} />}
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
     </div>
   );
 }
 
+<<<<<<< HEAD
 function SettingsModal({ t, agency, onCancel, onSave, onAutosave, fileInputRef, history }) {
+=======
+function SettingsModal({ t, agency, onCancel, onSave, onAutosave, fileInputRef }) {
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
   const [form, setForm] = useState(agency);
 
   // Autosave as the person types, debounced. This is the fix for
@@ -1267,13 +1337,17 @@ function SettingsModal({ t, agency, onCancel, onSave, onAutosave, fileInputRef, 
             {t.save || 'Save'}
           </button>
         </div>
+<<<<<<< HEAD
 
         <BackupSection t={t} history={history} />
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
       </div>
     </div>
   );
 }
 
+<<<<<<< HEAD
 // Manual export ("Export All") plus a note about the automatic on-disk
 // backup that already runs after every save (see src/backup.js). This is
 // the non-negotiable safety net for tax records: even if the in-app
@@ -1329,6 +1403,8 @@ function BackupSection({ t, history }) {
   );
 }
 
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
 function HistoryDrawer({ t, history, onClose, onLoad, onDelete }) {
   return (
     <div className="modal-overlay no-print" role="dialog" aria-modal="true">
@@ -1374,6 +1450,7 @@ function HistoryDrawer({ t, history, onClose, onLoad, onDelete }) {
       </div>
     </div>
   );
+<<<<<<< HEAD
 }
 
 // Full-screen gate shown until a valid license key is activated. Nothing
@@ -1537,4 +1614,6 @@ function LicenseBanner({ t, reason, onReactivate }) {
       )}
     </div>
   );
+=======
+>>>>>>> ec52f3791aabd92e9b01cdb02e64ebb2e73c5e34
 }
